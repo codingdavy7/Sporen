@@ -182,7 +182,8 @@ function initProfilePage() {
     state.preferences.startDate = startDate;
     state.planner.program.dogProfile.name = name;
     persist();
-    msg.textContent = "Profiel opgeslagen.";
+    msg.textContent = "Profiel opgeslagen. Doorsturen...";
+    window.location.assign(withRefresh("./dashboard.html"));
   });
 
   backLink.addEventListener("click", (event) => {
@@ -448,8 +449,9 @@ function initSessionPage() {
   const weekId = qs.get("week") || state.planner.ui.selectedWeekId || "w1";
   const sessionId = qs.get("session") || "";
   const ret = qs.get("return") || "trainingen";
+  const returnUrl = ret === "dashboard" ? "./dashboard.html" : ret === "logboek" ? "./logboek.html" : `./trainingen.html?week=${weekId}`;
 
-  backLink.href = ret === "dashboard" ? "./dashboard.html" : ret === "logboek" ? "./logboek.html" : `./trainingen.html?week=${weekId}`;
+  backLink.href = returnUrl;
   backLink.addEventListener("click", (event) => {
     if (window.history.length > 1) {
       event.preventDefault();
@@ -529,6 +531,7 @@ function initSessionPage() {
     if (res.ok) {
       syncCompletedWeekProgress();
       persist();
+      window.location.assign(withRefresh(returnUrl));
     }
   });
 }
@@ -694,4 +697,10 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/\"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+function withRefresh(url) {
+  const u = new URL(url, window.location.href);
+  u.searchParams.set("refresh", String(Date.now()));
+  return `${u.pathname}${u.search}`;
 }
