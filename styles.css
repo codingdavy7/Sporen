@@ -355,8 +355,8 @@ input, textarea, select {
   width: 100%;
   border: none;
   border-radius: 6px;
-  background: var(--brand);
-  color: #04111a;
+  background: #1f4b41;
+  color: #dff7ef;
   font-size: 0.66rem;
   padding: 0.16rem 0.22rem;
   margin-bottom: 0.16rem;
@@ -366,12 +366,12 @@ input, textarea, select {
   display: block;
 }
 
-.month-session:hover { background: var(--brand-strong); }
+.month-session:hover { background: #296657; }
 .month-session.done {
-  background: #79f7b7;
-  color: #062517;
+  background: #bff6d6;
+  color: #103226;
 }
-.month-session.done:hover { background: #5edfa1; }
+.month-session.done:hover { background: #a8ebc4; }
 .month-session.moved {
   border: 2px solid var(--brand);
 }

@@ -554,6 +554,9 @@ function initSessionPage() {
   resetSessionButton.addEventListener("click", () => {
     if (!window.confirm("Reset deze training? Evaluatie en logentry worden verwijderd.")) return;
     state.planner.program.progress.sessionsCompleted = state.planner.program.progress.sessionsCompleted.filter((id) => id !== sessionId);
+    if (state.planner.sessionsById[sessionId]) {
+      state.planner.sessionsById[sessionId].status = "planned";
+    }
     state.planner.logs = state.planner.logs.filter((log) => log.sessionId !== sessionId);
     syncCompletedWeekProgress();
     const saved = persist();
