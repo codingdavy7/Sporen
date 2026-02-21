@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sessie - Teckel Sporen Coach</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-page="session">
+    <header class="topbar">
+      <h1>Teckel Sporen Coach</h1>
+      <nav class="nav nav-split">
+        <div class="nav-main">
+          <a id="session-back-link" class="button ghost" href="./trainingen.html">← Terug</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="page">
+      <section class="card hero-card">
+        <h2>Training details</h2>
+        <article id="session-detail" class="training-detail">Sessie laden...</article>
+      </section>
+
+      <section class="card">
+        <h3>Training verplaatsen</h3>
+        <p class="muted">Gebruik de kalenderknop om een nieuwe datum te kiezen (binnen dezelfde week).</p>
+        <div class="inline-actions">
+          <button id="open-date-picker" class="button ghost" type="button">🗓️ Kies nieuwe datum</button>
+          <input id="reschedule-date" type="date" class="hidden" />
+          <button id="apply-reschedule" class="button" type="button">Datum toepassen</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>Evaluatie</h3>
+        <form id="session-log-form" class="form-grid">
+          <input id="log-date" type="date" required />
+          <input id="log-surface" type="text" placeholder="Ondergrond (gras/bos/...)" />
+          <input id="log-weather" type="text" placeholder="Weer (wind/droog/nat)" />
+          <input id="log-success" type="number" min="0" max="100" placeholder="Succes score 0-100" />
+          <select id="log-focus">
+            <option value="laag">Focus laag</option>
+            <option value="middel" selected>Focus middel</option>
+            <option value="hoog">Focus hoog</option>
+          </select>
+          <label><input id="obs-nose" type="checkbox" /> Neus omlaag</label>
+          <label><input id="obs-calm" type="checkbox" /> Rustig tempo</label>
+          <label id="obs-turn-wrap"><input id="obs-turn" type="checkbox" /> Bocht gevonden</label>
+          <label><input id="obs-distracted" type="checkbox" /> Afgeleid</label>
+          <div class="form-row">
+            <label for="log-photo">Sessie foto</label>
+            <input id="log-photo" type="file" accept="image/*" />
+          </div>
+          <textarea id="log-notes" rows="3" placeholder="Notities..."></textarea>
+          <button id="complete-session" class="button" type="submit">Opslaan & afvinken</button>
+        </form>
+        <p id="action-msg" class="form-msg" aria-live="polite"></p>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

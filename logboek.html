@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Logboek - Teckel Sporen Coach</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-page="logboek">
+    <header class="topbar">
+      <h1>Teckel Sporen Coach</h1>
+      <nav class="nav nav-split">
+        <div class="nav-main">
+          <a class="nav-link" href="./dashboard.html">Programma</a>
+          <a class="nav-link" href="./trainingen.html">Week-detail</a>
+          <a class="nav-link active" href="./logboek.html">Logboek</a>
+        </div>
+        <a class="button ghost" href="./profile.html?return=logboek">Profiel instellen</a>
+      </nav>
+    </header>
+
+    <main class="page">
+      <section class="card">
+        <h2>Filters</h2>
+        <div class="inline-fields">
+          <select id="filter-week"><option value="">Alle weken</option></select>
+          <select id="filter-surface"><option value="">Alle ondergronden</option></select>
+          <input id="filter-success" type="number" min="0" max="100" placeholder="Min. succes %" />
+          <button id="apply-filters" class="button" type="button">Filter</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Log entries</h2>
+        <div id="log-list" class="log-list"></div>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

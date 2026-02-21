@@ -3,36 +3,52 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard - Teckel Sporen Coach</title>
+    <title>Programma-overzicht - Teckel Sporen Coach</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body data-page="dashboard">
     <header class="topbar">
       <h1>Teckel Sporen Coach</h1>
-      <nav class="nav">
-        <a class="nav-link" href="./profile.html">Profiel</a>
-        <a class="nav-link active" href="./dashboard.html">Dashboard</a>
-        <a class="nav-link" href="./trainingen.html">Trainingen</a>
+      <nav class="nav nav-split">
+        <div class="nav-main">
+          <a class="nav-link active" href="./dashboard.html">Programma</a>
+          <a class="nav-link" href="./trainingen.html">Week-detail</a>
+          <a class="nav-link" href="./logboek.html">Logboek</a>
+        </div>
+        <a class="button ghost" href="./profile.html?return=dashboard">Profiel instellen</a>
       </nav>
     </header>
 
     <main class="page">
-      <section class="card">
-        <p class="eyebrow">Dashboard</p>
-        <h2 id="dog-greeting">Welkom</h2>
-        <p id="upcoming-session" class="upcoming">Volgende sessie: -</p>
-        <p id="unlock-status" class="muted">Week 1-2 zijn direct beschikbaar.</p>
+      <section class="card hero-card">
+        <p class="eyebrow">Programma-overzicht</p>
+        <div class="hero-grid">
+          <div>
+            <h2 id="dog-greeting">Welkom</h2>
+            <p id="upcoming-session" class="upcoming">Volgende sessie: -</p>
+            <p id="unlock-status" class="muted"></p>
+          </div>
+          <div class="dog-profile-compact">
+            <img id="dashboard-photo" class="photo-preview" alt="Hond profielfoto" />
+            <div>
+              <p class="muted small-m">Teckel profiel</p>
+              <p id="dashboard-dog-name" class="dog-name-chip">Nog geen naam</p>
+            </div>
+          </div>
+        </div>
+        <a id="next-session-link" class="button-link" href="./trainingen.html">Ga naar volgende sessie</a>
       </section>
 
       <section class="card">
-        <h3>Progressie (8 sterren)</h3>
-        <p class="muted">Algemene regel: elke 3 afgewerkte trainingen = 1 ster.</p>
+        <h3>Voortgang</h3>
+        <div id="week-cards" class="week-cards"></div>
+        <h3>8 sterren</h3>
+        <p class="muted">Algemene regel: elke 3 trainingen = 1 ster.</p>
         <div id="stars" class="stars" aria-label="Sterrenprogressie"></div>
         <div class="progress-track" aria-hidden="true">
           <div id="progress-fill" class="progress-fill"></div>
         </div>
         <p id="star-meta" class="star-meta"></p>
-        <p id="completed-meta" class="muted"></p>
       </section>
     </main>
 

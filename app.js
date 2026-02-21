@@ -1,37 +1,50 @@
+import {
+  DAYS,
+  autoReshuffleWeek,
+  completeSession,
+  createPlannerState,
+  markSessionMissed,
+  moveSession,
+  replanFromBacklog,
+  resetWeek,
+  saveWeekNotes,
+  setCurrentWeek,
+  validateWeek,
+} from "./core/trainingEngine.js";
+
 const STORAGE_KEY = "teckel_sporen_v1";
 const STORAGE_VERSION = "1.0";
-const TOTAL_WEEKS = 8;
-const SESSIONS_PER_WEEK = 3;
 const STAR_GOAL = 8;
 const TRAININGS_PER_STAR = 3;
-const SESSION_LABELS = ["A", "B", "C"];
 
 const state = {
+  page: document.body.dataset.page || "",
   plan: null,
-  selectedTrainingId: null,
-  data: {
-    version: STORAGE_VERSION,
-    sessions: [],
-    completedTrainings: [],
-    preferences: {
-      dogName: "",
-      startDate: todayISO(),
-      profilePhoto: "",
-    },
+  planner: null,
+  preferences: {
+    dogName: "",
+    startDate: todayISO(),
+    profilePhoto: "",
   },
 };
-
-const page = document.body.dataset.page || "";
 
 init();
 
 async function init() {
-  loadStorage();
-  await loadPlanSafe();
+  const saved = loadStorage();
+  state.preferences = saved.preferences;
 
-  if (page === "profile") initProfilePage();
-  if (page === "dashboard") initDashboardPage();
-  if (page === "trainingen") initTrainingenPage();
+  await loadPlanSafe();
+  if (!state.plan) return;
+
+  state.planner = isValidPlanner(saved.planner) ? saved.planner : createPlannerState(state.plan, state.preferences);
+  migrateLegacyIfNeeded(saved);
+
+  if (state.page === "profile") initProfilePage();
+  if (state.page === "dashboard") initDashboardPage();
+  if (state.page === "trainingen") initTrainingenPage();
+  if (state.page === "session") initSessionPage();
+  if (state.page === "logboek") initLogboekPage();
 }
 
 async function loadPlanSafe() {
@@ -39,348 +52,594 @@ async function loadPlanSafe() {
     const response = await fetch("./data/plan.json");
     if (!response.ok) throw new Error("Kon plan niet laden");
     const parsed = await response.json();
-    if (!Array.isArray(parsed.weeks)) throw new Error("Ongeldig plan-formaat");
+    if (!Array.isArray(parsed.weeks)) throw new Error("Plan-formaat ongeldig");
     state.plan = parsed;
   } catch (error) {
     console.error(error);
-    const container = document.querySelector("main");
-    if (!container) return;
-    const warning = document.createElement("p");
-    warning.className = "muted";
-    warning.textContent =
-      window.location.protocol === "file:"
-        ? "Kon trainingsdata niet laden. Open via lokale server: python3 -m http.server"
-        : "Kon trainingsdata niet laden.";
-    container.prepend(warning);
+    const main = document.querySelector("main");
+    if (main) {
+      const warning = document.createElement("p");
+      warning.className = "muted";
+      warning.textContent =
+        window.location.protocol === "file:"
+          ? "Kon plan niet laden. Gebruik lokale server: python3 -m http.server"
+          : "Kon plan niet laden.";
+      main.prepend(warning);
+    }
   }
 }
 
 function loadStorage() {
+  const fallback = { preferences: { dogName: "", startDate: todayISO(), profilePhoto: "" }, planner: null, legacy: null };
   const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return;
+  if (!raw) return fallback;
 
   try {
     const parsed = JSON.parse(raw);
-    if (parsed.version !== STORAGE_VERSION) return;
-
     const preferences = parsed.preferences && typeof parsed.preferences === "object" ? parsed.preferences : {};
-    state.data = {
-      version: STORAGE_VERSION,
-      sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [],
-      completedTrainings: Array.isArray(parsed.completedTrainings)
-        ? parsed.completedTrainings.filter(isValidTrainingId)
-        : [],
+
+    return {
       preferences: {
         dogName: typeof preferences.dogName === "string" ? preferences.dogName : "",
         startDate: isIsoDate(preferences.startDate) ? preferences.startDate : todayISO(),
         profilePhoto: typeof preferences.profilePhoto === "string" ? preferences.profilePhoto : "",
       },
+      planner: parsed.planner && typeof parsed.planner === "object" ? parsed.planner : null,
+      legacy: parsed,
     };
   } catch (error) {
-    console.warn("Kon storage niet lezen", error);
+    console.warn("Storage parse fout", error);
+    return fallback;
   }
 }
 
-function saveStorage() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
+function isValidPlanner(value) {
+  return Boolean(value && value.program && value.weeksById && value.sessionsById && Array.isArray(value.logs) && value.ui);
+}
+
+function migrateLegacyIfNeeded(saved) {
+  const legacy = saved.legacy;
+  if (!legacy || !state.planner) return;
+
+  if (Array.isArray(legacy.completedTrainings)) {
+    for (const id of legacy.completedTrainings) {
+      const mapped = legacyTrainingIdToNew(id);
+      if (mapped && !state.planner.program.progress.sessionsCompleted.includes(mapped)) {
+        state.planner.program.progress.sessionsCompleted.push(mapped);
+      }
+    }
+  }
+
+  if (Array.isArray(legacy.sessions)) {
+    for (const entry of legacy.sessions) {
+      if (!Number.isInteger(entry.week) || !Number.isInteger(entry.day)) continue;
+      const mapped = `w${entry.week}-s${entry.day}`;
+      if (!state.planner.program.progress.sessionsCompleted.includes(mapped)) {
+        state.planner.program.progress.sessionsCompleted.push(mapped);
+      }
+    }
+  }
+
+  syncCompletedWeekProgress();
+  persist();
+}
+
+function persist() {
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      version: STORAGE_VERSION,
+      preferences: state.preferences,
+      planner: state.planner,
+    })
+  );
 }
 
 function initProfilePage() {
   const form = document.getElementById("profile-form");
-  const dogName = document.getElementById("dog-name");
-  const startDate = document.getElementById("start-date");
+  const nameInput = document.getElementById("dog-name");
+  const startInput = document.getElementById("start-date");
   const photoInput = document.getElementById("photo-input");
   const photoPreview = document.getElementById("photo-preview");
   const photoRemove = document.getElementById("photo-remove");
   const msg = document.getElementById("profile-msg");
+  const backLink = document.getElementById("profile-back-link");
 
-  dogName.value = state.data.preferences.dogName;
-  startDate.value = state.data.preferences.startDate;
-  renderPhoto(photoPreview, state.data.preferences.profilePhoto);
+  const qs = new URLSearchParams(window.location.search);
+  const ret = qs.get("return");
+  if (ret === "trainingen") backLink.href = "./trainingen.html";
+  if (ret === "logboek") backLink.href = "./logboek.html";
+  if (ret === "dashboard") backLink.href = "./dashboard.html";
+
+  nameInput.value = state.preferences.dogName;
+  startInput.value = state.preferences.startDate;
+  renderPhoto(photoPreview, state.preferences.profilePhoto);
 
   photoInput.addEventListener("change", async () => {
     const file = photoInput.files && photoInput.files[0];
     if (!file) return;
-    const dataUrl = await readFileAsDataUrl(file);
-    state.data.preferences.profilePhoto = dataUrl;
-    renderPhoto(photoPreview, dataUrl);
-    msg.textContent = "Foto klaar. Klik op Profiel opslaan.";
+    state.preferences.profilePhoto = await readFileAsDataUrl(file);
+    renderPhoto(photoPreview, state.preferences.profilePhoto);
+    msg.textContent = "Foto gekozen.";
   });
 
   photoRemove.addEventListener("click", () => {
-    state.data.preferences.profilePhoto = "";
+    state.preferences.profilePhoto = "";
     photoInput.value = "";
     renderPhoto(photoPreview, "");
-    msg.textContent = "Foto verwijderd. Klik op Profiel opslaan.";
+    msg.textContent = "Foto verwijderd.";
   });
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-    const nextName = dogName.value.trim();
-    const nextDate = startDate.value;
+    const name = nameInput.value.trim();
+    const startDate = startInput.value;
 
-    if (!nextName) {
-      msg.textContent = "Vul een hondennaam in.";
-      return;
-    }
-    if (!isIsoDate(nextDate)) {
-      msg.textContent = "Kies een geldige startdatum.";
-      return;
-    }
+    if (!name) return (msg.textContent = "Vul een naam in.");
+    if (!isIsoDate(startDate)) return (msg.textContent = "Kies een geldige startdatum.");
 
-    state.data.preferences.dogName = nextName;
-    state.data.preferences.startDate = nextDate;
-    saveStorage();
+    state.preferences.dogName = name;
+    state.preferences.startDate = startDate;
+    state.planner.program.dogProfile.name = name;
+    persist();
     msg.textContent = "Profiel opgeslagen.";
   });
 }
 
 function initDashboardPage() {
-  const dogGreeting = document.getElementById("dog-greeting");
+  const greeting = document.getElementById("dog-greeting");
   const upcoming = document.getElementById("upcoming-session");
-  const unlockStatus = document.getElementById("unlock-status");
+  const status = document.getElementById("unlock-status");
+  const weekCards = document.getElementById("week-cards");
   const stars = document.getElementById("stars");
   const progressFill = document.getElementById("progress-fill");
   const starMeta = document.getElementById("star-meta");
-  const completedMeta = document.getElementById("completed-meta");
+  const cta = document.getElementById("next-session-link");
+  const dashboardPhoto = document.getElementById("dashboard-photo");
+  const dashboardDogName = document.getElementById("dashboard-dog-name");
 
-  const dogName = state.data.preferences.dogName || "je hond";
-  dogGreeting.textContent = `Welkom, ${dogName}`;
+  const dogName = state.preferences.dogName || "je hond";
+  greeting.textContent = `Welkom, ${dogName}`;
+  dashboardDogName.textContent = dogName;
+  renderPhoto(dashboardPhoto, state.preferences.profilePhoto);
 
-  const completedCount = getCompletedCount();
-  const starsEarned = Math.min(STAR_GOAL, Math.floor(completedCount / TRAININGS_PER_STAR));
+  const completedCount = completedSessionCount();
   const unlockedWeeks = getUnlockedWeeks(completedCount);
-  const nextTraining = getNextUpcomingTraining();
+  const next = getNextOpenSession(unlockedWeeks);
+  const starsEarned = Math.min(STAR_GOAL, Math.floor(completedCount / TRAININGS_PER_STAR));
 
-  if (nextTraining) {
-    upcoming.textContent = `Volgende sessie: Week ${nextTraining.week} - Training ${SESSION_LABELS[nextTraining.session - 1]} (${nextTraining.title})`;
+  if (next) {
+    upcoming.textContent = `Volgende sessie: Week ${next.week} - ${next.code} (${next.title})`;
+    cta.href = `./session.html?week=w${next.week}&session=${next.id}&return=dashboard`;
   } else {
-    upcoming.textContent = "Volgende sessie: alle trainingen voltooid.";
+    upcoming.textContent = "Volgende sessie: alle sessies in unlocked weken voltooid.";
+    cta.href = "./trainingen.html";
   }
 
-  unlockStatus.textContent = `Unlocked: week 1 t/m ${unlockedWeeks}. Voltooi 3 trainingen voor een extra week.`;
+  status.textContent = `Unlocked weken: 1 t/m ${unlockedWeeks}`;
 
-  stars.innerHTML = Array.from({ length: STAR_GOAL }, (_, index) => {
-    const filled = index < starsEarned ? "filled" : "";
-    return `<span class=\"star ${filled}\">★</span>`;
-  }).join("");
+  weekCards.innerHTML = Array.from({ length: 8 }, (_, i) => i + 1)
+    .map((weekNumber) => {
+      const weekId = `w${weekNumber}`;
+      const week = state.planner.weeksById[weekId];
+      const done = week ? week.sessions.filter((id) => state.planner.program.progress.sessionsCompleted.includes(id)).length : 0;
+      const unlocked = weekNumber <= unlockedWeeks;
+      const doneAll = week && done === week.sessions.length;
+      const classes = ["week-chip", unlocked ? "" : "locked", doneAll ? "done" : ""].join(" ");
+      return `<div class="${classes}">Week ${weekNumber}<br />${done}/3</div>`;
+    })
+    .join("");
 
-  const percent = Math.min(100, (starsEarned / STAR_GOAL) * 100);
-  progressFill.style.width = `${percent}%`;
-  starMeta.textContent = `${starsEarned}/${STAR_GOAL} sterren verdiend`;
-  completedMeta.textContent = `${completedCount} trainingen voltooid`;
+  stars.innerHTML = Array.from({ length: STAR_GOAL }, (_, i) => `<span class="star ${i < starsEarned ? "filled" : ""}">★</span>`).join("");
+  progressFill.style.width = `${(starsEarned / STAR_GOAL) * 100}%`;
+  starMeta.textContent = `${starsEarned}/${STAR_GOAL} sterren · ${completedCount} sessies voltooid`;
 }
 
 function initTrainingenPage() {
-  const weeksList = document.getElementById("weeks-list");
-  const detail = document.getElementById("training-detail");
+  const weekSelect = document.getElementById("week-select");
+  const weekTitle = document.getElementById("week-title");
+  const weekGoal = document.getElementById("week-goal");
+  const calendar = document.getElementById("week-calendar");
+  const monthPrev = document.getElementById("month-prev");
+  const monthNext = document.getElementById("month-next");
+  const monthLabel = document.getElementById("month-label");
+  const monthCalendar = document.getElementById("month-calendar");
+  const warningsList = document.getElementById("warnings-list");
+  const backlogList = document.getElementById("backlog-list");
+  const notes = document.getElementById("week-notes");
+  const saveNotesButton = document.getElementById("save-notes");
+  const autoButton = document.getElementById("auto-reshuffle");
+  const resetButton = document.getElementById("reset-week");
+  const msg = document.getElementById("action-msg");
 
-  if (!state.plan || !Array.isArray(state.plan.weeks)) {
-    weeksList.innerHTML = "<p class=\"muted\">Trainingsdata niet beschikbaar.</p>";
-    return;
-  }
+  let monthCursor = null;
 
-  weeksList.addEventListener("click", (event) => {
-    const sessionButton = event.target.closest("button[data-training-id]");
-    if (sessionButton) {
-      state.selectedTrainingId = sessionButton.dataset.trainingId;
-      renderTrainingenPage();
-      return;
+  const unlockedWeeks = getUnlockedWeeks(completedSessionCount());
+  weekSelect.innerHTML = Array.from({ length: unlockedWeeks }, (_, i) => i + 1)
+    .map((n) => `<option value="w${n}">Week ${n}</option>`)
+    .join("");
+
+  weekSelect.value = state.planner.ui.selectedWeekId && Number(state.planner.ui.selectedWeekId.replace("w", "")) <= unlockedWeeks ? state.planner.ui.selectedWeekId : "w1";
+  setCurrentWeek(state.planner, weekSelect.value);
+
+  const parseStartDate = () => {
+    const [y, m, d] = state.preferences.startDate.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  };
+
+  const addDays = (date, days) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+  const toIso = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const mondayIndex = (date) => (date.getDay() + 6) % 7;
+
+  const resolveSessionDate = (weekNumber, dayName) => {
+    const start = parseStartDate();
+    const offset = (weekNumber - 1) * 7 + DAYS.indexOf(dayName);
+    return addDays(start, offset);
+  };
+
+  const buildScheduledEntries = () => {
+    const entries = [];
+    for (let week = 1; week <= unlockedWeeks; week += 1) {
+      const weekId = `w${week}`;
+      const weekData = state.planner.weeksById[weekId];
+      if (!weekData) continue;
+      for (const dayName of DAYS) {
+        for (const sessionId of weekData.calendar[dayName]) {
+          const session = state.planner.sessionsById[sessionId];
+          const date = resolveSessionDate(week, dayName);
+          entries.push({ sessionId, weekId, weekNumber: week, code: session.code, title: session.title, iso: toIso(date) });
+        }
+      }
+    }
+    return entries.sort((a, b) => a.iso.localeCompare(b.iso));
+  };
+
+  const renderMonthCalendar = () => {
+    const entries = buildScheduledEntries();
+    const completed = new Set(state.planner.program.progress.sessionsCompleted);
+    const selectedWeekNumber = Number(weekSelect.value.replace("w", ""));
+
+    if (!monthCursor) {
+      const first = resolveSessionDate(selectedWeekNumber, "Ma");
+      monthCursor = new Date(first.getFullYear(), first.getMonth(), 1);
     }
 
-    const toggleButton = event.target.closest("button[data-toggle-id]");
-    if (toggleButton) {
-      const id = toggleButton.dataset.toggleId;
-      toggleTrainingCompletion(id);
-      renderTrainingenPage();
+    monthLabel.textContent = monthCursor.toLocaleDateString("nl-NL", { month: "long", year: "numeric" });
+
+    const firstDay = new Date(monthCursor.getFullYear(), monthCursor.getMonth(), 1);
+    const daysInMonth = new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 0).getDate();
+    const blanks = mondayIndex(firstDay);
+
+    const headers = DAYS.map((d) => `<div class="month-weekday">${d}</div>`).join("");
+    const leading = Array.from({ length: blanks }, () => '<div class="month-day empty"></div>').join("");
+
+    let cells = "";
+    for (let day = 1; day <= daysInMonth; day += 1) {
+      const iso = `${monthCursor.getFullYear()}-${String(monthCursor.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      const dayEntries = entries.filter((entry) => entry.iso === iso);
+      const badges = dayEntries
+        .map((entry) => {
+          const doneClass = completed.has(entry.sessionId) ? "done" : "";
+          return `<a class="month-session ${doneClass}" href="./session.html?week=${entry.weekId}&session=${entry.sessionId}&return=trainingen">${entry.code} · W${entry.weekNumber}</a>`;
+        })
+        .join("");
+
+      cells += `<div class="month-day ${dayEntries.length ? "has-training" : ""}"><p class="month-day-num">${day}</p>${badges}</div>`;
     }
-  });
 
-  detail.addEventListener("click", (event) => {
-    const toggleButton = event.target.closest("button[data-toggle-id]");
-    if (!toggleButton) return;
-    toggleTrainingCompletion(toggleButton.dataset.toggleId);
-    renderTrainingenPage();
-  });
+    monthCalendar.innerHTML = `<div class="month-grid">${headers}${leading}${cells}</div>`;
+  };
 
-  renderTrainingenPage();
-}
+  const renderWeek = () => {
+    const weekId = weekSelect.value;
+    setCurrentWeek(state.planner, weekId);
+    const week = state.planner.weeksById[weekId];
 
-function renderTrainingenPage() {
-  const weeksList = document.getElementById("weeks-list");
-  const detail = document.getElementById("training-detail");
-  const completed = getCompletedSet();
-  const unlockedWeeks = getUnlockedWeeks(completed.size);
+    weekTitle.textContent = `Week ${week.number}`;
+    weekGoal.textContent = week.title;
+    notes.value = week.notes || "";
 
-  const weekCards = state.plan.weeks
-    .map((week) => {
-      const unlocked = week.weekNumber <= unlockedWeeks;
-      if (!unlocked) return "";
-
-      const sessionButtons = week.sessions
-        .map((session, idx) => {
-          const sessionNumber = idx + 1;
-          const id = toTrainingId(week.weekNumber, sessionNumber);
-          const isDone = completed.has(id);
-          const isActive = state.selectedTrainingId === id;
-          const activeClass = isActive ? "active" : "";
-          const doneClass = isDone ? "done" : "";
-          const stateLabel = isDone ? "Gedaan" : "Open";
-
+    calendar.innerHTML = DAYS.map((day) => {
+      const sessions = week.calendar[day]
+        .map((sessionId) => {
+          const s = state.planner.sessionsById[sessionId];
+          const done = state.planner.program.progress.sessionsCompleted.includes(sessionId);
           return `
-            <button type=\"button\" class=\"session-btn ${activeClass} ${doneClass}\" data-training-id=\"${id}\">
-              Training ${SESSION_LABELS[idx]}: ${escapeHtml(session.title)}
-              <span class=\"session-state\">${stateLabel}</span>
-            </button>
+            <a class="session-pill ${done ? "done" : ""}" href="./session.html?week=${weekId}&session=${sessionId}&return=trainingen">
+              <div class="session-head"><strong>${s.code}</strong><span class="session-status">${done ? "Gedaan" : "Gepland"}</span></div>
+              <p class="session-title">${escapeHtml(s.title)}</p>
+            </a>
           `;
         })
         .join("");
 
-      return `
-        <article class=\"week-card\">
-          <h3 class=\"week-title\">Week ${week.weekNumber} - ${escapeHtml(week.theme)}</h3>
-          <div class=\"session-list\">${sessionButtons}</div>
-        </article>
-      `;
-    })
-    .join("");
+      return `<section class="day-col"><h4>${day}</h4>${sessions || "<p class='muted'>Rust</p>"}</section>`;
+    }).join("");
 
-  weeksList.innerHTML = weekCards;
+    const warnings = validateWeek(week, state.planner.sessionsById);
+    warningsList.innerHTML = warnings.length ? warnings.map((w) => `<li>${escapeHtml(w.message)}</li>`).join("") : "<li>Geen waarschuwingen.</li>";
 
-  if (!state.selectedTrainingId || !completedTrainingExists(state.selectedTrainingId, unlockedWeeks)) {
-    state.selectedTrainingId = firstUnlockedTrainingId(unlockedWeeks);
+    backlogList.innerHTML = week.backlog.length
+      ? week.backlog
+          .map((id) => {
+            const s = state.planner.sessionsById[id];
+            return `<div class="backlog-item">${s.code} ${escapeHtml(s.title)} <button type="button" data-replan="${id}">Plan opnieuw</button></div>`;
+          })
+          .join("")
+      : "<p class='muted'>Geen gemiste sessies.</p>";
+
+    renderMonthCalendar();
+    persist();
+  };
+
+  weekSelect.addEventListener("change", renderWeek);
+
+  backlogList.addEventListener("click", (event) => {
+    const replanButton = event.target.closest("button[data-replan]");
+    if (!replanButton) return;
+    const toDay = window.prompt("Plan op welke dag? (Ma/Di/Wo/Do/Vr/Za/Zo)", "Di");
+    if (!toDay || !DAYS.includes(toDay)) return;
+    const result = replanFromBacklog(state.planner, replanButton.dataset.replan, toDay, { lightVersion: false });
+    msg.textContent = result.ok ? "Backlog-sessie opnieuw gepland." : "Opnieuw plannen mislukt.";
+    renderWeek();
+  });
+
+  monthPrev.addEventListener("click", () => {
+    monthCursor = new Date(monthCursor.getFullYear(), monthCursor.getMonth() - 1, 1);
+    renderMonthCalendar();
+  });
+
+  monthNext.addEventListener("click", () => {
+    monthCursor = new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 1);
+    renderMonthCalendar();
+  });
+
+  saveNotesButton.addEventListener("click", () => {
+    const res = saveWeekNotes(state.planner, weekSelect.value, notes.value);
+    msg.textContent = res.ok ? "Weeknotities opgeslagen." : "Opslaan notities mislukt.";
+    persist();
+  });
+
+  autoButton.addEventListener("click", () => {
+    const res = autoReshuffleWeek(state.planner, weekSelect.value);
+    msg.textContent = res.ok ? `Auto herschikken uitgevoerd (${res.moved.length} verplaatsingen).` : "Auto herschikken mislukt.";
+    renderWeek();
+  });
+
+  resetButton.addEventListener("click", () => {
+    if (!window.confirm("Week resetten naar basisplanning?")) return;
+    const res = resetWeek(state.planner, weekSelect.value);
+    msg.textContent = res.ok ? "Week gereset." : "Reset mislukt.";
+    renderWeek();
+  });
+
+  renderWeek();
+}
+
+function initSessionPage() {
+  const backLink = document.getElementById("session-back-link");
+  const detail = document.getElementById("session-detail");
+  const openDatePicker = document.getElementById("open-date-picker");
+  const rescheduleDate = document.getElementById("reschedule-date");
+  const applyReschedule = document.getElementById("apply-reschedule");
+  const logForm = document.getElementById("session-log-form");
+  const logDate = document.getElementById("log-date");
+  const logSurface = document.getElementById("log-surface");
+  const logWeather = document.getElementById("log-weather");
+  const logSuccess = document.getElementById("log-success");
+  const logFocus = document.getElementById("log-focus");
+  const obsNose = document.getElementById("obs-nose");
+  const obsCalm = document.getElementById("obs-calm");
+  const obsTurn = document.getElementById("obs-turn");
+  const obsTurnWrap = document.getElementById("obs-turn-wrap");
+  const obsDistracted = document.getElementById("obs-distracted");
+  const logPhoto = document.getElementById("log-photo");
+  const logNotes = document.getElementById("log-notes");
+  const msg = document.getElementById("action-msg");
+
+  const qs = new URLSearchParams(window.location.search);
+  const weekId = qs.get("week") || state.planner.ui.selectedWeekId || "w1";
+  const sessionId = qs.get("session") || "";
+  const ret = qs.get("return") || "trainingen";
+
+  backLink.href = ret === "dashboard" ? "./dashboard.html" : ret === "logboek" ? "./logboek.html" : `./trainingen.html?week=${weekId}`;
+
+  const session = state.planner.sessionsById[sessionId];
+  if (!session) {
+    detail.innerHTML = "Sessie niet gevonden.";
+    return;
   }
 
-  detail.innerHTML = buildTrainingDetailHtml(state.selectedTrainingId, completed);
-}
+  renderSessionDetail(detail, sessionId);
 
-function buildTrainingDetailHtml(trainingId, completedSet) {
-  const training = getTrainingById(trainingId);
-  if (!training) return "Selecteer een training links.";
+  const hasTurn = Number(session.track.turns) > 0;
+  obsTurnWrap.classList.toggle("hidden", !hasTurn);
+  if (!hasTurn) obsTurn.checked = false;
 
-  const done = completedSet.has(trainingId);
-  const toggleLabel = done ? "Markeer als niet gedaan" : "Markeer als gedaan";
+  logDate.value = todayISO();
 
-  return `
-    <h3>Week ${training.week} - Training ${SESSION_LABELS[training.session - 1]}</h3>
-    <p><strong>Titel:</strong> ${escapeHtml(training.title)}</p>
-    <p><strong>Doel:</strong> ${escapeHtml(training.goal)}</p>
-    <p><strong>Spoor:</strong> ${escapeHtml(training.track)}</p>
-    <p><strong>Snoepjes:</strong> ${escapeHtml(training.snacks)}</p>
-    <p><strong>Leeftijd spoor:</strong> ${escapeHtml(training.trackAge)}</p>
-    <p><strong>Benodigdheden:</strong> ${escapeHtml(training.materials.join(", "))}</p>
-    <button type=\"button\" class=\"button\" data-toggle-id=\"${trainingId}\">${toggleLabel}</button>
-  `;
-}
+  openDatePicker.addEventListener("click", () => {
+    rescheduleDate.classList.remove("hidden");
+    rescheduleDate.showPicker?.();
+  });
 
-function toggleTrainingCompletion(trainingId) {
-  const set = new Set(state.data.completedTrainings.filter(isValidTrainingId));
-  if (set.has(trainingId)) {
-    set.delete(trainingId);
-  } else {
-    set.add(trainingId);
-  }
-  state.data.completedTrainings = [...set].sort();
-  saveStorage();
-}
-
-function getCompletedSet() {
-  const fromManual = new Set(state.data.completedTrainings.filter(isValidTrainingId));
-  const fromSessions = state.data.sessions
-    .filter((session) => Number.isInteger(session.week) && Number.isInteger(session.day))
-    .map((session) => toTrainingId(session.week, session.day))
-    .filter(isValidTrainingId);
-
-  fromSessions.forEach((id) => fromManual.add(id));
-  return fromManual;
-}
-
-function getCompletedCount() {
-  return getCompletedSet().size;
-}
-
-function getUnlockedWeeks(completedCount) {
-  const unlocked = 2 + Math.floor(completedCount / TRAININGS_PER_STAR);
-  return clamp(unlocked, 2, TOTAL_WEEKS);
-}
-
-function getNextUpcomingTraining() {
-  if (!state.plan || !Array.isArray(state.plan.weeks)) return null;
-
-  const completed = getCompletedSet();
-  const unlockedWeeks = getUnlockedWeeks(completed.size);
-
-  for (let week = 1; week <= unlockedWeeks; week += 1) {
-    for (let session = 1; session <= SESSIONS_PER_WEEK; session += 1) {
-      const id = toTrainingId(week, session);
-      if (completed.has(id)) continue;
-
-      const weekData = state.plan.weeks.find((item) => item.weekNumber === week);
-      const sessionData = weekData && weekData.sessions[session - 1];
-      if (!sessionData) continue;
-
-      return {
-        week,
-        session,
-        title: sessionData.title,
-      };
+  applyReschedule.addEventListener("click", () => {
+    if (!rescheduleDate.value) {
+      msg.textContent = "Kies eerst een datum.";
+      return;
     }
-  }
 
-  return null;
+    const location = findSessionLocation(sessionId);
+    if (!location) {
+      msg.textContent = "Kon huidige sessiepositie niet bepalen.";
+      return;
+    }
+
+    if (location.weekId !== weekId) {
+      msg.textContent = "Deze sessie hoort bij een andere week.";
+      return;
+    }
+
+    const targetDay = dayNameFromDate(rescheduleDate.value);
+    if (!targetDay) {
+      msg.textContent = "Ongeldige datum.";
+      return;
+    }
+
+    const result = moveSession(state.planner, sessionId, location.day, targetDay, "append", { lightVersion: false });
+    msg.textContent = result.ok ? `Sessie verplaatst naar ${targetDay}.` : "Verplaatsen mislukt.";
+    persist();
+  });
+
+  logForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    let photoDataUrl = "";
+    const file = logPhoto.files && logPhoto.files[0];
+    if (file) photoDataUrl = await readFileAsDataUrl(file);
+
+    const res = completeSession(state.planner, sessionId, {
+      date: logDate.value,
+      surface: logSurface.value,
+      weather: logWeather.value,
+      successScore: Number(logSuccess.value || 0),
+      focus: logFocus.value,
+      notes: logNotes.value,
+      noseDown: obsNose.checked,
+      calmPace: obsCalm.checked,
+      foundTurn: hasTurn ? obsTurn.checked : null,
+      distracted: obsDistracted.checked,
+      photoDataUrl,
+    });
+
+    msg.textContent = res.ok ? "Sessie opgeslagen en afgevinkt." : "Opslaan mislukt.";
+    if (res.ok) {
+      syncCompletedWeekProgress();
+      persist();
+    }
+  });
 }
 
-function completedTrainingExists(trainingId, unlockedWeeks) {
-  const training = getTrainingById(trainingId);
-  return Boolean(training && training.week <= unlockedWeeks);
-}
-
-function firstUnlockedTrainingId(unlockedWeeks) {
-  for (let week = 1; week <= unlockedWeeks; week += 1) {
-    for (let session = 1; session <= SESSIONS_PER_WEEK; session += 1) {
-      if (getTrainingById(toTrainingId(week, session))) {
-        return toTrainingId(week, session);
+function findSessionLocation(sessionId) {
+  for (const [weekId, week] of Object.entries(state.planner.weeksById)) {
+    for (const day of DAYS) {
+      if (week.calendar[day].includes(sessionId)) {
+        return { weekId, day };
       }
     }
   }
   return null;
 }
 
-function getTrainingById(trainingId) {
-  if (!isValidTrainingId(trainingId) || !state.plan) return null;
+function dayNameFromDate(isoDate) {
+  const d = new Date(`${isoDate}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return null;
+  const idx = (d.getDay() + 6) % 7;
+  return DAYS[idx] || null;
+}
 
-  const [weekRaw, sessionRaw] = trainingId.split("-");
-  const week = Number(weekRaw);
-  const session = Number(sessionRaw);
+function renderSessionDetail(container, sessionId) {
+  if (!sessionId) {
+    container.innerHTML = "Selecteer een sessie.";
+    return;
+  }
+  const s = state.planner.sessionsById[sessionId];
+  if (!s) {
+    container.innerHTML = "Sessie niet gevonden.";
+    return;
+  }
 
-  const weekData = state.plan.weeks.find((item) => item.weekNumber === week);
-  if (!weekData || !Array.isArray(weekData.sessions)) return null;
+  container.innerHTML = `
+    <h3>${s.code} · ${escapeHtml(s.title)}</h3>
+    <p><strong>Spooropbouw:</strong> ${s.track.lengthM}m · ${s.track.turns} bocht(en) · ${escapeHtml(s.track.surface)}</p>
+    <p><strong>Snoepjes:</strong> ${escapeHtml(s.track.treatPattern)}</p>
+    <p><strong>Uitvoering:</strong> rustig starten, neus omlaag, lijn los volgen.</p>
+    <p><strong>Adaptief makkelijker:</strong> ${s.adaptive.easier.lengthM}m, ${s.adaptive.easier.turns} bochten (${escapeHtml(s.adaptive.easier.note)})</p>
+    <p><strong>Adaptief korter:</strong> ${s.adaptive.shorter.durationMin} min, ${s.adaptive.shorter.lengthM}m (${escapeHtml(s.adaptive.shorter.note)})</p>
+  `;
+}
 
-  const sessionData = weekData.sessions[session - 1];
-  if (!sessionData) return null;
+function initLogboekPage() {
+  const filterWeek = document.getElementById("filter-week");
+  const filterSurface = document.getElementById("filter-surface");
+  const filterSuccess = document.getElementById("filter-success");
+  const apply = document.getElementById("apply-filters");
+  const list = document.getElementById("log-list");
 
-  return {
-    week,
-    session,
-    title: sessionData.title,
-    goal: sessionData.goal,
-    track: sessionData.track,
-    snacks: sessionData.snacks,
-    trackAge: sessionData.trackAge,
-    materials: Array.isArray(sessionData.materials) ? sessionData.materials : [],
+  filterWeek.innerHTML += Array.from({ length: 8 }, (_, i) => `<option value="w${i + 1}">Week ${i + 1}</option>`).join("");
+
+  const surfaces = [...new Set(state.planner.logs.map((log) => log.surface).filter(Boolean))];
+  filterSurface.innerHTML += surfaces.map((s) => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
+
+  const render = () => {
+    const weekFilter = filterWeek.value;
+    const surfaceFilter = filterSurface.value;
+    const minSuccess = Number(filterSuccess.value || 0);
+
+    const filtered = state.planner.logs.filter((log) => {
+      if (weekFilter && log.weekId !== weekFilter) return false;
+      if (surfaceFilter && log.surface !== surfaceFilter) return false;
+      if (log.successScore < minSuccess) return false;
+      return true;
+    });
+
+    list.innerHTML = filtered.length
+      ? filtered
+          .map(
+            (log) => `
+            <article class="log-item">
+              <strong>${escapeHtml(log.date)} · ${escapeHtml(log.sessionId)}</strong>
+              <p>Ondergrond: ${escapeHtml(log.surface)} · Weer: ${escapeHtml(log.weather)}</p>
+              <p>Succes: ${log.successScore}% · Focus: ${escapeHtml(log.focus)}</p>
+              ${log.photoDataUrl ? `<img src="${log.photoDataUrl}" alt="Sessie foto" class="log-photo" />` : ""}
+              <p>${escapeHtml(log.notes || "-")}</p>
+            </article>
+          `
+          )
+          .join("")
+      : "<p class='muted'>Geen logentries voor deze filter.</p>";
   };
+
+  apply.addEventListener("click", render);
+  render();
 }
 
-function isValidTrainingId(value) {
-  if (typeof value !== "string" || !/^\d+-\d+$/.test(value)) return false;
-  const [weekRaw, sessionRaw] = value.split("-");
-  const week = Number(weekRaw);
-  const session = Number(sessionRaw);
-  return week >= 1 && week <= TOTAL_WEEKS && session >= 1 && session <= SESSIONS_PER_WEEK;
+function completedSessionCount() {
+  return new Set(state.planner.program.progress.sessionsCompleted).size;
 }
 
-function toTrainingId(week, session) {
-  return `${week}-${session}`;
+function getUnlockedWeeks(completedCount) {
+  return clamp(2 + Math.floor(completedCount / TRAININGS_PER_STAR), 2, 8);
+}
+
+function getNextOpenSession(unlockedWeeks) {
+  for (let week = 1; week <= unlockedWeeks; week += 1) {
+    const weekId = `w${week}`;
+    const weekData = state.planner.weeksById[weekId];
+    if (!weekData) continue;
+    for (const sessionId of weekData.sessions) {
+      if (!state.planner.program.progress.sessionsCompleted.includes(sessionId)) {
+        const s = state.planner.sessionsById[sessionId];
+        return { week, id: sessionId, code: s.code, title: s.title };
+      }
+    }
+  }
+  return null;
+}
+
+function syncCompletedWeekProgress() {
+  const completed = new Set(state.planner.program.progress.sessionsCompleted);
+  state.planner.program.progress.weeksCompleted = Object.values(state.planner.weeksById)
+    .filter((week) => week.sessions.every((id) => completed.has(id)))
+    .map((week) => week.number)
+    .sort((a, b) => a - b);
+}
+
+function legacyTrainingIdToNew(value) {
+  if (typeof value !== "string") return null;
+  const m = value.match(/^w(\d+)-s(\d+)$/i);
+  if (!m) return null;
+  return `w${Number(m[1])}-s${Number(m[2])}`;
 }
 
 function renderPhoto(img, dataUrl) {
@@ -397,21 +656,18 @@ function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(new Error("Kon foto niet lezen"));
+    reader.onerror = () => reject(new Error("Kon bestand niet lezen"));
     reader.readAsDataURL(file);
   });
 }
 
-function isIsoDate(value) {
-  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value));
-}
-
 function todayISO() {
   const date = new Date();
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function isIsoDate(value) {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value));
 }
 
 function clamp(value, min, max) {

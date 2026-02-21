@@ -3,29 +3,58 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Trainingen - Teckel Sporen Coach</title>
+    <title>Week-detail - Teckel Sporen Coach</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body data-page="trainingen">
     <header class="topbar">
       <h1>Teckel Sporen Coach</h1>
-      <nav class="nav">
-        <a class="nav-link" href="./profile.html">Profiel</a>
-        <a class="nav-link" href="./dashboard.html">Dashboard</a>
-        <a class="nav-link active" href="./trainingen.html">Trainingen</a>
+      <nav class="nav nav-split">
+        <div class="nav-main">
+          <a class="nav-link" href="./dashboard.html">Programma</a>
+          <a class="nav-link active" href="./trainingen.html">Week-detail</a>
+          <a class="nav-link" href="./logboek.html">Logboek</a>
+        </div>
+        <a class="button ghost" href="./profile.html?return=trainingen">Profiel instellen</a>
       </nav>
     </header>
 
-    <main class="page page-grid">
-      <section class="card">
-        <h2>Trainingsweken</h2>
-        <p class="muted">Week 1 en 2 zijn open. Daarna unlock je elke week per 3 voltooide trainingen.</p>
-        <div id="weeks-list" class="weeks-list"></div>
-      </section>
+    <main class="page">
+      <section class="card hero-card">
+        <div class="week-head-row">
+          <h2 id="week-title">Week</h2>
+          <select id="week-select"></select>
+        </div>
+        <p id="week-goal" class="muted"></p>
 
-      <section class="card">
-        <h2>Training details</h2>
-        <article id="training-detail" class="training-detail">Selecteer een training links.</article>
+        <h3>Kalender (ma-zo)</h3>
+        <p class="muted">Klik op een sessie om te openen.</p>
+        <div id="week-calendar" class="week-calendar"></div>
+
+        <h3>Maandkalender</h3>
+        <div class="month-nav">
+          <button id="month-prev" class="button ghost" type="button">Vorige maand</button>
+          <p id="month-label" class="month-label"></p>
+          <button id="month-next" class="button ghost" type="button">Volgende maand</button>
+        </div>
+        <div id="month-calendar" class="month-calendar"></div>
+
+        <div class="inline-actions">
+          <button id="auto-reshuffle" class="button" type="button">Auto herschikken</button>
+          <button id="reset-week" class="button ghost" type="button">Reset week</button>
+        </div>
+
+        <h3>Waarschuwingen</h3>
+        <ul id="warnings-list" class="simple-list"></ul>
+
+        <h3>Backlog (gemiste sessies)</h3>
+        <div id="backlog-list" class="backlog-list"></div>
+
+        <h3>Weeknotities</h3>
+        <textarea id="week-notes" rows="4" placeholder="Notities voor deze week..."></textarea>
+        <button id="save-notes" class="button" type="button">Bewaar notities</button>
+
+        <p id="action-msg" class="form-msg" aria-live="polite"></p>
       </section>
     </main>
 
