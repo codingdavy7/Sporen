@@ -350,7 +350,7 @@ function initTrainingenPage() {
         .map((entry) => {
           const doneClass = completed.has(entry.sessionId) ? "done" : "";
           const movedClass = entry.sessionId === movedSessionId ? "moved" : "";
-          const label = `Level ${entry.weekNumber}${sessionLetterFromId(entry.sessionId)}`;
+          const label = `Level ${entry.weekNumber}${sessionNumberFromId(entry.sessionId)}`;
           return `<a class="month-session ${doneClass} ${movedClass}" href="./session.html?week=${entry.weekId}&session=${entry.sessionId}&return=trainingen">${label}</a>`;
         })
         .join("");
@@ -371,12 +371,13 @@ function initTrainingenPage() {
     notes.value = week.notes || "";
 
     calendar.innerHTML = DAYS.map((day) => {
+      const dayDate = resolveSessionDate(week.number, day);
       const sessions = week.calendar[day]
         .map((sessionId) => {
           const s = state.planner.sessionsById[sessionId];
           const done = state.planner.program.progress.sessionsCompleted.includes(sessionId);
           const movedClass = sessionId === movedSessionId ? "moved" : "";
-          const levelLabel = `Level ${week.number}${sessionLetterFromId(sessionId)}`;
+          const levelLabel = `Level ${week.number}${sessionNumberFromId(sessionId)}`;
           return `
             <a class="session-pill ${done ? "done" : ""} ${movedClass}" href="./session.html?week=${weekId}&session=${sessionId}&return=trainingen">
               <div class="session-head"><strong>${levelLabel}</strong><span class="session-status">${done ? "Gedaan" : "Gepland"}</span></div>
@@ -386,7 +387,7 @@ function initTrainingenPage() {
         })
         .join("");
 
-      return `<section class="day-col"><h4>${day}</h4>${sessions || "<p class='muted'>Rust</p>"}</section>`;
+      return `<section class="day-col"><h4>${day} ${dayDate.getDate()}</h4>${sessions || "<p class='muted'>Rust</p>"}</section>`;
     }).join("");
 
     const warnings = validateWeek(week, state.planner.sessionsById);
@@ -454,6 +455,7 @@ function initSessionPage() {
   const detail = document.getElementById("session-detail");
   const openDatePicker = document.getElementById("open-date-picker");
   const rescheduleDate = document.getElementById("reschedule-date");
+  const resetSessionButton = document.getElementById("reset-session");
   const openEvalForm = document.getElementById("open-eval-form");
   const cancelEval = document.getElementById("cancel-eval");
   const logForm = document.getElementById("session-log-form");
@@ -500,8 +502,9 @@ function initSessionPage() {
   logDate.value = todayISO();
 
   openDatePicker.addEventListener("click", () => {
+    rescheduleDate.value = "";
     rescheduleDate.classList.remove("hidden");
-    rescheduleDate.showPicker?.();
+    rescheduleDate.focus();
   });
 
   rescheduleDate.addEventListener("change", () => {
@@ -546,6 +549,19 @@ function initSessionPage() {
     logForm.classList.add("hidden");
     openEvalForm.classList.remove("hidden");
     msg.textContent = "";
+  });
+
+  resetSessionButton.addEventListener("click", () => {
+    if (!window.confirm("Reset deze training? Evaluatie en logentry worden verwijderd.")) return;
+    state.planner.program.progress.sessionsCompleted = state.planner.program.progress.sessionsCompleted.filter((id) => id !== sessionId);
+    state.planner.logs = state.planner.logs.filter((log) => log.sessionId !== sessionId);
+    syncCompletedWeekProgress();
+    const saved = persist();
+    if (!saved.ok) {
+      msg.textContent = saved.message;
+      return;
+    }
+    window.location.replace(withRefresh(returnUrl));
   });
 
   logForm.addEventListener("submit", async (event) => {
@@ -846,15 +862,6 @@ function withRefresh(url) {
   const u = new URL(url, window.location.href);
   u.searchParams.set("refresh", String(Date.now()));
   return `${u.pathname}${u.search}`;
-}
-
-function sessionLetterFromId(sessionId) {
-  const m = String(sessionId).match(/-s(\d+)$/i);
-  const n = m ? Number(m[1]) : 1;
-  if (n === 1) return "A";
-  if (n === 2) return "B";
-  if (n === 3) return "C";
-  return "A";
 }
 
 function sessionNumberFromId(sessionId) {
