@@ -14,15 +14,14 @@ import {
 
 const STORAGE_KEY = "teckel_sporen_v1";
 const STORAGE_VERSION = "1.0";
-const STAR_GOAL = 8;
 const TRAININGS_PER_STAR = 3;
-
 const state = {
   page: document.body.dataset.page || "",
   plan: null,
   planner: null,
   preferences: {
     dogName: "",
+    pawrent: "",
     startDate: todayISO(),
     profilePhoto: "",
   },
@@ -33,6 +32,7 @@ init();
 async function init() {
   const saved = loadStorage();
   state.preferences = saved.preferences;
+  initGlobalNav();
 
   await loadPlanSafe();
   if (!state.plan) return;
@@ -70,7 +70,7 @@ async function loadPlanSafe() {
 }
 
 function loadStorage() {
-  const fallback = { preferences: { dogName: "", startDate: todayISO(), profilePhoto: "" }, planner: null, legacy: null };
+  const fallback = { preferences: { dogName: "", pawrent: "", startDate: todayISO(), profilePhoto: "" }, planner: null, legacy: null };
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return fallback;
 
@@ -81,6 +81,7 @@ function loadStorage() {
     return {
       preferences: {
         dogName: typeof preferences.dogName === "string" ? preferences.dogName : "",
+        pawrent: typeof preferences.pawrent === "string" ? preferences.pawrent : "",
         startDate: isIsoDate(preferences.startDate) ? preferences.startDate : todayISO(),
         profilePhoto: typeof preferences.profilePhoto === "string" ? preferences.profilePhoto : "",
       },
@@ -125,19 +126,26 @@ function migrateLegacyIfNeeded(saved) {
 }
 
 function persist() {
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify({
-      version: STORAGE_VERSION,
-      preferences: state.preferences,
-      planner: state.planner,
-    })
-  );
+  try {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: STORAGE_VERSION,
+        preferences: state.preferences,
+        planner: state.planner,
+      })
+    );
+    return { ok: true };
+  } catch (error) {
+    console.error("Opslaan mislukt", error);
+    return { ok: false, message: "Opslaan mislukt. Kies een kleinere foto en probeer opnieuw." };
+  }
 }
 
 function initProfilePage() {
   const form = document.getElementById("profile-form");
   const nameInput = document.getElementById("dog-name");
+  const pawrentInput = document.getElementById("pawrent-name");
   const startInput = document.getElementById("start-date");
   const photoInput = document.getElementById("photo-input");
   const photoPreview = document.getElementById("photo-preview");
@@ -152,15 +160,20 @@ function initProfilePage() {
   if (ret === "dashboard") backLink.href = "./dashboard.html";
 
   nameInput.value = state.preferences.dogName;
+  pawrentInput.value = state.preferences.pawrent || "";
   startInput.value = state.preferences.startDate;
   renderPhoto(photoPreview, state.preferences.profilePhoto);
 
   photoInput.addEventListener("change", async () => {
     const file = photoInput.files && photoInput.files[0];
     if (!file) return;
-    state.preferences.profilePhoto = await readFileAsDataUrl(file);
-    renderPhoto(photoPreview, state.preferences.profilePhoto);
-    msg.textContent = "Foto gekozen.";
+    try {
+      state.preferences.profilePhoto = await readFileAsDataUrl(file);
+      renderPhoto(photoPreview, state.preferences.profilePhoto);
+      msg.textContent = "Foto gekozen.";
+    } catch (_err) {
+      msg.textContent = "Foto kon niet verwerkt worden.";
+    }
   });
 
   photoRemove.addEventListener("click", () => {
@@ -173,17 +186,23 @@ function initProfilePage() {
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     const name = nameInput.value.trim();
+    const pawrent = pawrentInput.value.trim();
     let startDate = startInput.value;
 
-    if (!name) return (msg.textContent = "Vul een naam in.");
+    if (!name) return (msg.textContent = "Vul een teckelnaam in.");
     if (!isIsoDate(startDate)) startDate = todayISO();
 
     state.preferences.dogName = name;
+    state.preferences.pawrent = pawrent;
     state.preferences.startDate = startDate;
     state.planner.program.dogProfile.name = name;
-    persist();
+    const saved = persist();
+    if (!saved.ok) {
+      msg.textContent = saved.message;
+      return;
+    }
     msg.textContent = "Profiel opgeslagen. Doorsturen...";
-    window.location.assign(withRefresh("./dashboard.html"));
+    window.location.replace(withRefresh("./dashboard.html"));
   });
 
   backLink.addEventListener("click", (event) => {
@@ -197,50 +216,44 @@ function initProfilePage() {
 function initDashboardPage() {
   const greeting = document.getElementById("dog-greeting");
   const upcoming = document.getElementById("upcoming-session");
-  const status = document.getElementById("unlock-status");
-  const weekCards = document.getElementById("week-cards");
-  const stars = document.getElementById("stars");
-  const progressFill = document.getElementById("progress-fill");
-  const starMeta = document.getElementById("star-meta");
-  const cta = document.getElementById("next-session-link");
+  const nextDate = document.getElementById("next-session-date");
+  const nextInfo = document.getElementById("next-session-info");
+  const cta = document.getElementById("start-now-link");
+  const boneTrack = document.getElementById("bone-track");
+  const boneMeta = document.getElementById("bone-meta");
   const dashboardPhoto = document.getElementById("dashboard-photo");
   const dashboardDogName = document.getElementById("dashboard-dog-name");
+  const pawrentName = document.getElementById("dashboard-pawrent-name");
 
-  const dogName = state.preferences.dogName || "je hond";
-  greeting.textContent = `Welkom, ${dogName}`;
+  const dogName = state.preferences.dogName || "Teckel";
+  greeting.textContent = `Welkom ${dogName}`;
   dashboardDogName.textContent = dogName;
+  pawrentName.textContent = state.preferences.pawrent || "-";
   renderPhoto(dashboardPhoto, state.preferences.profilePhoto);
 
   const completedCount = completedSessionCount();
   const unlockedWeeks = getUnlockedWeeks(completedCount);
   const next = getNextOpenSession(unlockedWeeks);
-  const starsEarned = Math.min(STAR_GOAL, Math.floor(completedCount / TRAININGS_PER_STAR));
 
   if (next) {
-    upcoming.textContent = `Volgende sessie: Week ${next.week} - ${next.code} (${next.title})`;
+    upcoming.textContent = `Volgende sessie: Week ${next.week} - S${next.sessionNumber}`;
+    nextDate.textContent = `Gepland op ${formatDateReadable(next.dateIso)}`;
+    nextInfo.textContent = `${next.title} · ${next.lengthM}m · ${next.turns} bocht(en) · ${next.surface}`;
     cta.href = `./session.html?week=w${next.week}&session=${next.id}&return=dashboard`;
   } else {
     upcoming.textContent = "Volgende sessie: alle sessies in unlocked weken voltooid.";
+    nextDate.textContent = "-";
+    nextInfo.textContent = "Geen open sessies in unlocked weken.";
     cta.href = "./trainingen.html";
   }
 
-  status.textContent = `Unlocked weken: 1 t/m ${unlockedWeeks}`;
-
-  weekCards.innerHTML = Array.from({ length: 8 }, (_, i) => i + 1)
-    .map((weekNumber) => {
-      const weekId = `w${weekNumber}`;
-      const week = state.planner.weeksById[weekId];
-      const done = week ? week.sessions.filter((id) => state.planner.program.progress.sessionsCompleted.includes(id)).length : 0;
-      const unlocked = weekNumber <= unlockedWeeks;
-      const doneAll = week && done === week.sessions.length;
-      const classes = ["week-chip", unlocked ? "" : "locked", doneAll ? "done" : ""].join(" ");
-      return `<div class="${classes}">Week ${weekNumber}<br />${done}/3</div>`;
-    })
+  const totalSessions = Object.keys(state.planner.sessionsById).length;
+  const completed = new Set(state.planner.program.progress.sessionsCompleted);
+  boneTrack.innerHTML = Object.keys(state.planner.sessionsById)
+    .sort(sortSessionIds)
+    .map((sessionId) => `<span class="bone ${completed.has(sessionId) ? "filled" : ""}" title="${sessionId}">🦴</span>`)
     .join("");
-
-  stars.innerHTML = Array.from({ length: STAR_GOAL }, (_, i) => `<span class="star ${i < starsEarned ? "filled" : ""}">★</span>`).join("");
-  progressFill.style.width = `${(starsEarned / STAR_GOAL) * 100}%`;
-  starMeta.textContent = `${starsEarned}/${STAR_GOAL} sterren · ${completedCount} sessies voltooid`;
+  boneMeta.textContent = `${completedCount}/${totalSessions} trainingen afgewerkt · unlocked weken t/m ${unlockedWeeks}`;
 }
 
 function initTrainingenPage() {
@@ -737,7 +750,16 @@ function getNextOpenSession(unlockedWeeks) {
     for (const sessionId of weekData.sessions) {
       if (!state.planner.program.progress.sessionsCompleted.includes(sessionId)) {
         const s = state.planner.sessionsById[sessionId];
-        return { week, id: sessionId, code: s.code, title: s.title };
+        return {
+          week,
+          id: sessionId,
+          title: s.title,
+          sessionNumber: sessionNumberFromId(sessionId),
+          dateIso: getSessionPlannedDate(sessionId),
+          lengthM: s.track.lengthM,
+          turns: s.track.turns,
+          surface: s.track.surface,
+        };
       }
     }
   }
@@ -770,9 +792,29 @@ function renderPhoto(img, dataUrl) {
 }
 
 function readFileAsDataUrl(file) {
+  if (!file.type || !file.type.startsWith("image/")) {
+    return Promise.reject(new Error("Geen afbeelding"));
+  }
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 900;
+        const ratio = Math.min(max / img.width, max / img.height, 1);
+        const width = Math.round(img.width * ratio);
+        const height = Math.round(img.height * ratio);
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject(new Error("Canvas niet beschikbaar"));
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.82));
+      };
+      img.onerror = () => reject(new Error("Afbeelding kon niet geladen worden"));
+      img.src = String(reader.result || "");
+    };
     reader.onerror = () => reject(new Error("Kon bestand niet lezen"));
     reader.readAsDataURL(file);
   });
@@ -813,4 +855,65 @@ function sessionLetterFromId(sessionId) {
   if (n === 2) return "B";
   if (n === 3) return "C";
   return "A";
+}
+
+function sessionNumberFromId(sessionId) {
+  const m = String(sessionId).match(/-s(\d+)$/i);
+  return m ? Number(m[1]) : 1;
+}
+
+function getSessionPlannedDate(sessionId) {
+  const location = findSessionLocation(sessionId);
+  if (!location) return "";
+  const weekNum = Number(String(location.weekId).replace("w", ""));
+  if (!Number.isInteger(weekNum) || weekNum < 1) return "";
+  const safeStart = isIsoDate(state.preferences.startDate) ? state.preferences.startDate : todayISO();
+  const [y, m, d] = safeStart.split("-").map(Number);
+  const start = new Date(y, (m || 1) - 1, d || 1);
+  const offset = (weekNum - 1) * 7 + DAYS.indexOf(location.day);
+  const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + offset);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function formatDateReadable(iso) {
+  if (!isIsoDate(iso)) return "onbekend";
+  const d = new Date(`${iso}T00:00:00`);
+  return d.toLocaleDateString("nl-BE", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+function sortSessionIds(a, b) {
+  const ma = String(a).match(/^w(\d+)-s(\d+)$/i);
+  const mb = String(b).match(/^w(\d+)-s(\d+)$/i);
+  if (!ma || !mb) return String(a).localeCompare(String(b));
+  const wa = Number(ma[1]);
+  const wb = Number(mb[1]);
+  if (wa !== wb) return wa - wb;
+  return Number(ma[2]) - Number(mb[2]);
+}
+
+function initGlobalNav() {
+  const button = document.querySelector(".menu-toggle");
+  const drawer = document.querySelector(".menu-drawer");
+  if (!button || !drawer) return;
+
+  const isExpanded = () => button.getAttribute("aria-expanded") === "true";
+  const close = () => {
+    button.setAttribute("aria-expanded", "false");
+    drawer.classList.add("hidden");
+  };
+  const open = () => {
+    button.setAttribute("aria-expanded", "true");
+    drawer.classList.remove("hidden");
+  };
+
+  button.addEventListener("click", () => {
+    if (isExpanded()) close();
+    else open();
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!drawer.contains(event.target) && !button.contains(event.target)) {
+      close();
+    }
+  });
 }

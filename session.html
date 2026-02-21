@@ -8,15 +8,19 @@
   </head>
   <body data-page="session">
     <header class="topbar">
-      <h1>Teckel Search</h1>
-      <nav class="nav nav-split">
-        <div class="nav-main">
-          <a id="session-back-link" class="button ghost" href="./trainingen.html">← Terug</a>
-        </div>
+      <div class="topbar-row">
+        <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false">☰</button>
+        <h1>Teckel Search</h1>
+      </div>
+      <nav class="menu-drawer hidden">
+        <a class="nav-link" href="./dashboard.html">Homepagina</a>
+        <a class="nav-link" href="./trainingen.html">Weekdetail</a>
+        <a class="nav-link" href="./profile.html?return=trainingen">Instellingen</a>
       </nav>
     </header>
 
     <main class="page">
+      <a id="session-back-link" class="button ghost" href="./trainingen.html">← Terug</a>
       <section class="card hero-card">
         <div class="session-headline">
           <h2>Training details</h2>

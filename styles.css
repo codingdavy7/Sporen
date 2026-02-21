@@ -1,13 +1,13 @@
 :root {
-  --bg: #070b16;
-  --card: #11182b;
-  --card-alt: #161f36;
+  --bg: #06110e;
+  --card: #10211d;
+  --card-alt: #16302a;
   --text: #f3f7ff;
-  --muted: #9db0d8;
-  --border: #2b3f6c;
-  --brand: #00d4ff;
-  --brand-strong: #00a8d1;
-  --brand-soft: #1a2a4f;
+  --muted: #a7cdbf;
+  --border: #2b5a51;
+  --brand: #52f7c2;
+  --brand-strong: #2fd6a2;
+  --brand-soft: #193a35;
   --ok: #5ef2a4;
   --warn: #ffd166;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
@@ -21,8 +21,8 @@ body {
   font-family: "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
   color: var(--text);
   background:
-    radial-gradient(circle at 90% -5%, #00d4ff55 0%, transparent 32%),
-    radial-gradient(circle at 5% 0%, #4b5dff55 0%, transparent 28%),
+    radial-gradient(circle at 90% -5%, #52f7c255 0%, transparent 32%),
+    radial-gradient(circle at 5% 0%, #a5ffd555 0%, transparent 28%),
     radial-gradient(circle at 50% 110%, #43ff9a33 0%, transparent 32%),
     var(--bg);
 }
@@ -36,6 +36,31 @@ body {
   margin: 0;
   font-size: clamp(1.25rem, 4.2vw, 2.25rem);
   letter-spacing: 0.01em;
+}
+
+.topbar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.menu-toggle {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--card-alt);
+  color: var(--text);
+  border-radius: 10px;
+  width: 42px;
+  height: 42px;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.menu-drawer {
+  margin-top: 0.6rem;
+  display: grid;
+  gap: 0.45rem;
+  max-width: 260px;
 }
 
 .nav { margin-top: 0.7rem; display: flex; gap: 0.45rem; flex-wrap: wrap; }
@@ -57,7 +82,7 @@ body {
 }
 
 .nav-link.active { background: var(--brand); color: #04111a; border-color: var(--brand); }
-.nav-link:hover { transform: translateY(-1px); background: #1d2a4a; }
+.nav-link:hover { transform: translateY(-1px); background: #1b3a34; }
 
 .page {
   width: min(1200px, 100% - 1rem);
@@ -76,7 +101,7 @@ body {
 
 .hero-card {
   background:
-    linear-gradient(165deg, #172444f2, #111b35f2),
+    linear-gradient(165deg, #1b3b34f2, #10211df2),
     var(--card);
   box-shadow: var(--shadow-strong);
 }
@@ -116,7 +141,7 @@ input, textarea, select {
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.62rem;
-  background: #0d1324;
+  background: #0d1f1b;
   color: var(--text);
 }
 
@@ -140,7 +165,7 @@ input, textarea, select {
 .button:hover, .button-link:hover {
   background: var(--brand-strong);
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(0, 212, 255, 0.3);
+  box-shadow: 0 8px 20px rgba(82, 247, 194, 0.3);
 }
 
 .button.ghost {
@@ -162,7 +187,7 @@ input, textarea, select {
   border-radius: 16px;
   object-fit: cover;
   border: 1px solid var(--border);
-  background: #0f1730;
+  background: #133029;
 }
 .photo-preview.hidden { display: none; }
 
@@ -186,16 +211,40 @@ input, textarea, select {
   font-weight: 700;
 }
 
-.week-chip.locked { background: #0f1424; color: #8194ba; border-style: dashed; }
+.week-chip.locked { background: #0f1d1a; color: #86a99f; border-style: dashed; }
 .week-chip.done { border-color: var(--ok); color: var(--ok); background: #123326; }
 
 .stars { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 0.35rem; }
-.star { text-align: center; font-size: 1.35rem; border: 1px solid var(--border); border-radius: 10px; padding: 0.3rem 0; color: #7c92be; background: #0f1528; }
+.star { text-align: center; font-size: 1.35rem; border: 1px solid var(--border); border-radius: 10px; padding: 0.3rem 0; color: #7fa79b; background: #112621; }
 .star.filled { color: #ffe66d; border-color: #ffe66d; background: #27331e; }
 
-.progress-track { margin-top: 0.6rem; width: 100%; height: 12px; border-radius: 999px; background: #1f2d4b; overflow: hidden; }
-.progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #00d4ff, #78ff8b); }
+.progress-track { margin-top: 0.6rem; width: 100%; height: 12px; border-radius: 999px; background: #1d3b34; overflow: hidden; }
+.progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #52f7c2, #b8ff7a); }
 .star-meta { margin: 0.5rem 0 0; font-weight: 700; }
+
+.bone-track {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.bone {
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.26rem 0;
+  background: #12312b;
+  filter: grayscale(0.9);
+  opacity: 0.7;
+}
+
+.bone.filled {
+  background: #1f3d31;
+  border-color: var(--brand);
+  filter: none;
+  opacity: 1;
+}
 
 .week-head-row { display: flex; justify-content: space-between; gap: 0.6rem; align-items: center; }
 .week-head-row select { max-width: 180px; }
@@ -208,14 +257,14 @@ input, textarea, select {
 
 .day-col { border: 1px solid var(--border); border-radius: 10px; background: var(--card-alt); min-height: 90px; padding: 0.45rem; }
 .day-col h4 { margin: 0 0 0.35rem; font-size: 0.9rem; }
-.day-col:nth-child(2n) { background: #10182d; }
+.day-col:nth-child(2n) { background: #12352f; }
 
 .session-pill {
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.45rem;
   margin-bottom: 0.35rem;
-  background: #101a31;
+  background: #14332d;
   font-size: 0.86rem;
   text-decoration: none;
   color: var(--text);
@@ -282,18 +331,18 @@ input, textarea, select {
   min-height: 68px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #0f1730;
+  background: #13322d;
   padding: 0.22rem;
 }
 
 .month-day.empty {
-  background: #0b1223;
+  background: #0f221d;
   border-style: dashed;
 }
 
 .month-day.has-training {
-  background: #13203f;
-  border-color: #3a5da3;
+  background: #163a33;
+  border-color: #3c8a77;
 }
 
 .month-day-num {
@@ -335,7 +384,7 @@ input, textarea, select {
 .simple-list li { color: var(--warn); }
 
 .backlog-list { display: grid; gap: 0.35rem; }
-.backlog-item { border: 1px dashed var(--border); border-radius: 9px; padding: 0.45rem; background: #0f172d; font-size: 0.86rem; }
+.backlog-item { border: 1px dashed var(--border); border-radius: 9px; padding: 0.45rem; background: #11302a; font-size: 0.86rem; }
 
 .training-detail p { margin: 0.3rem 0; }
 .session-headline {

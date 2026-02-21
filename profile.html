@@ -8,22 +8,30 @@
   </head>
   <body data-page="profile">
     <header class="topbar">
-      <h1>Teckel Search</h1>
-      <nav class="nav nav-split">
-        <div class="nav-main">
-          <a id="profile-back-link" class="button ghost" href="./dashboard.html">← Terug</a>
-        </div>
+      <div class="topbar-row">
+        <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false">☰</button>
+        <h1>Teckel Search</h1>
+      </div>
+      <nav class="menu-drawer hidden">
+        <a class="nav-link" href="./dashboard.html">Homepagina</a>
+        <a class="nav-link" href="./trainingen.html">Weekdetail</a>
+        <a class="nav-link active" href="./profile.html?return=dashboard">Instellingen</a>
       </nav>
     </header>
 
     <main class="page">
       <section class="card hero-card">
         <h2>Profiel instellen</h2>
-        <p class="muted">Stel je hondprofiel in en ga daarna terug.</p>
+        <p class="muted">Stel je hondprofiel in. Na opslaan ga je terug naar home.</p>
+        <a id="profile-back-link" class="button ghost" href="./dashboard.html">← Terug</a>
         <form id="profile-form" class="form-grid">
           <div class="form-row">
             <label for="dog-name">Naam van je hond</label>
             <input id="dog-name" name="dogName" type="text" maxlength="60" required />
+          </div>
+          <div class="form-row">
+            <label for="pawrent-name">Naam pawrent</label>
+            <input id="pawrent-name" name="pawrentName" type="text" maxlength="80" />
           </div>
 
           <div class="form-row">
