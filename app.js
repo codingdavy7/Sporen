@@ -259,6 +259,9 @@ function initTrainingenPage() {
   const autoButton = document.getElementById("auto-reshuffle");
   const resetButton = document.getElementById("reset-week");
   const msg = document.getElementById("action-msg");
+  const qs = new URLSearchParams(window.location.search);
+  const movedSessionId = qs.get("moved") || "";
+  const weekFromQuery = qs.get("week");
 
   let monthCursor = null;
 
@@ -267,7 +270,12 @@ function initTrainingenPage() {
     .map((n) => `<option value="w${n}">Week ${n}</option>`)
     .join("");
 
-  weekSelect.value = state.planner.ui.selectedWeekId && Number(state.planner.ui.selectedWeekId.replace("w", "")) <= unlockedWeeks ? state.planner.ui.selectedWeekId : "w1";
+  const validWeekFromQuery = weekFromQuery && /^w[1-8]$/i.test(weekFromQuery) ? weekFromQuery.toLowerCase() : "";
+  const selectedFromState =
+    state.planner.ui.selectedWeekId && Number(state.planner.ui.selectedWeekId.replace("w", "")) <= unlockedWeeks
+      ? state.planner.ui.selectedWeekId
+      : "w1";
+  weekSelect.value = validWeekFromQuery && Number(validWeekFromQuery.replace("w", "")) <= unlockedWeeks ? validWeekFromQuery : selectedFromState;
   setCurrentWeek(state.planner, weekSelect.value);
 
   const parseStartDate = () => {
@@ -328,8 +336,9 @@ function initTrainingenPage() {
       const badges = dayEntries
         .map((entry) => {
           const doneClass = completed.has(entry.sessionId) ? "done" : "";
+          const movedClass = entry.sessionId === movedSessionId ? "moved" : "";
           const label = `Level ${entry.weekNumber}${sessionLetterFromId(entry.sessionId)}`;
-          return `<a class="month-session ${doneClass}" href="./session.html?week=${entry.weekId}&session=${entry.sessionId}&return=trainingen">${label}</a>`;
+          return `<a class="month-session ${doneClass} ${movedClass}" href="./session.html?week=${entry.weekId}&session=${entry.sessionId}&return=trainingen">${label}</a>`;
         })
         .join("");
 
@@ -353,9 +362,10 @@ function initTrainingenPage() {
         .map((sessionId) => {
           const s = state.planner.sessionsById[sessionId];
           const done = state.planner.program.progress.sessionsCompleted.includes(sessionId);
+          const movedClass = sessionId === movedSessionId ? "moved" : "";
           const levelLabel = `Level ${week.number}${sessionLetterFromId(sessionId)}`;
           return `
-            <a class="session-pill ${done ? "done" : ""}" href="./session.html?week=${weekId}&session=${sessionId}&return=trainingen">
+            <a class="session-pill ${done ? "done" : ""} ${movedClass}" href="./session.html?week=${weekId}&session=${sessionId}&return=trainingen">
               <div class="session-head"><strong>${levelLabel}</strong><span class="session-status">${done ? "Gedaan" : "Gepland"}</span></div>
               <p class="session-title">${escapeHtml(s.title)}</p>
             </a>
@@ -431,7 +441,8 @@ function initSessionPage() {
   const detail = document.getElementById("session-detail");
   const openDatePicker = document.getElementById("open-date-picker");
   const rescheduleDate = document.getElementById("reschedule-date");
-  const applyReschedule = document.getElementById("apply-reschedule");
+  const openEvalForm = document.getElementById("open-eval-form");
+  const cancelEval = document.getElementById("cancel-eval");
   const logForm = document.getElementById("session-log-form");
   const logDate = document.getElementById("log-date");
   const logSurface = document.getElementById("log-surface");
@@ -480,7 +491,7 @@ function initSessionPage() {
     rescheduleDate.showPicker?.();
   });
 
-  applyReschedule.addEventListener("click", () => {
+  rescheduleDate.addEventListener("change", () => {
     if (!rescheduleDate.value) {
       msg.textContent = "Kies eerst een datum.";
       return;
@@ -504,8 +515,24 @@ function initSessionPage() {
     }
 
     const result = moveSession(state.planner, sessionId, location.day, targetDay, "append", { lightVersion: false });
-    msg.textContent = result.ok ? `Sessie verplaatst naar ${targetDay}.` : "Verplaatsen mislukt.";
+    if (!result.ok) {
+      msg.textContent = "Verplaatsen mislukt.";
+      return;
+    }
     persist();
+    const target = `./trainingen.html?week=${weekId}&moved=${encodeURIComponent(sessionId)}`;
+    window.location.replace(withRefresh(target));
+  });
+
+  openEvalForm.addEventListener("click", () => {
+    logForm.classList.remove("hidden");
+    openEvalForm.classList.add("hidden");
+  });
+
+  cancelEval.addEventListener("click", () => {
+    logForm.classList.add("hidden");
+    openEvalForm.classList.remove("hidden");
+    msg.textContent = "";
   });
 
   logForm.addEventListener("submit", async (event) => {
@@ -583,6 +610,7 @@ function initLogboekPage() {
   const filterSuccess = document.getElementById("filter-success");
   const apply = document.getElementById("apply-filters");
   const list = document.getElementById("log-list");
+  let editingLogId = "";
 
   filterWeek.innerHTML += Array.from({ length: 8 }, (_, i) => `<option value="w${i + 1}">Week ${i + 1}</option>`).join("");
 
@@ -603,20 +631,91 @@ function initLogboekPage() {
 
     list.innerHTML = filtered.length
       ? filtered
-          .map(
-            (log) => `
+          .map((log) => {
+            const isEditing = editingLogId === log.id;
+            if (isEditing) {
+              return `
+            <article class="log-item">
+              <strong>${escapeHtml(log.date)} · ${escapeHtml(log.sessionId)}</strong>
+              <div class="form-grid compact-grid">
+                <select data-edit-field="surface">
+                  ${["gras", "zand", "bos", "asfalt", "grind"]
+                    .map((v) => `<option value="${v}" ${log.surface === v ? "selected" : ""}>${v}</option>`)
+                    .join("")}
+                </select>
+                <select data-edit-field="weather">
+                  ${["droog", "nat", "wind"]
+                    .map((v) => `<option value="${v}" ${log.weather === v ? "selected" : ""}>${v}</option>`)
+                    .join("")}
+                </select>
+                <input data-edit-field="successScore" type="number" min="0" max="100" value="${Number(log.successScore || 0)}" />
+                <select data-edit-field="focus">
+                  ${["laag", "middel", "hoog"]
+                    .map((v) => `<option value="${v}" ${log.focus === v ? "selected" : ""}>${v}</option>`)
+                    .join("")}
+                </select>
+                <textarea data-edit-field="notes" rows="3" placeholder="Notities...">${escapeHtml(log.notes || "")}</textarea>
+              </div>
+              <div class="inline-actions">
+                <button class="button" type="button" data-log-save="${log.id}">Opslaan</button>
+                <button class="button ghost subtle" type="button" data-log-cancel="1">Cancel</button>
+              </div>
+            </article>
+          `;
+            }
+            return `
             <article class="log-item">
               <strong>${escapeHtml(log.date)} · ${escapeHtml(log.sessionId)}</strong>
               <p>Ondergrond: ${escapeHtml(log.surface)} · Weer: ${escapeHtml(log.weather)}</p>
               <p>Succes: ${log.successScore}% · Focus: ${escapeHtml(log.focus)}</p>
               ${log.photoDataUrl ? `<img src="${log.photoDataUrl}" alt="Sessie foto" class="log-photo" />` : ""}
               <p>${escapeHtml(log.notes || "-")}</p>
+              <div class="inline-actions">
+                <button class="button ghost" type="button" data-log-edit="${log.id}">Bewerk</button>
+              </div>
             </article>
-          `
-          )
+          `;
+          })
           .join("")
       : "<p class='muted'>Geen logentries voor deze filter.</p>";
   };
+
+  list.addEventListener("click", (event) => {
+    const editBtn = event.target.closest("[data-log-edit]");
+    if (editBtn) {
+      editingLogId = editBtn.dataset.logEdit;
+      render();
+      return;
+    }
+
+    const cancelBtn = event.target.closest("[data-log-cancel]");
+    if (cancelBtn) {
+      editingLogId = "";
+      render();
+      return;
+    }
+
+    const saveBtn = event.target.closest("[data-log-save]");
+    if (!saveBtn) return;
+    const logId = saveBtn.dataset.logSave;
+    const article = saveBtn.closest(".log-item");
+    const log = state.planner.logs.find((entry) => entry.id === logId);
+    if (!article || !log) return;
+
+    const fieldValue = (name) => {
+      const el = article.querySelector(`[data-edit-field="${name}"]`);
+      return el ? el.value : "";
+    };
+
+    log.surface = fieldValue("surface") || "gras";
+    log.weather = fieldValue("weather") || "droog";
+    log.successScore = clamp(Number(fieldValue("successScore") || 0), 0, 100);
+    log.focus = fieldValue("focus") || "middel";
+    log.notes = fieldValue("notes");
+    editingLogId = "";
+    persist();
+    render();
+  });
 
   apply.addEventListener("click", render);
   render();
