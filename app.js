@@ -328,7 +328,8 @@ function initTrainingenPage() {
       const badges = dayEntries
         .map((entry) => {
           const doneClass = completed.has(entry.sessionId) ? "done" : "";
-          return `<a class="month-session ${doneClass}" href="./session.html?week=${entry.weekId}&session=${entry.sessionId}&return=trainingen">${entry.code} · W${entry.weekNumber}</a>`;
+          const label = `Level ${entry.weekNumber}${sessionLetterFromId(entry.sessionId)}`;
+          return `<a class="month-session ${doneClass}" href="./session.html?week=${entry.weekId}&session=${entry.sessionId}&return=trainingen">${label}</a>`;
         })
         .join("");
 
@@ -352,9 +353,10 @@ function initTrainingenPage() {
         .map((sessionId) => {
           const s = state.planner.sessionsById[sessionId];
           const done = state.planner.program.progress.sessionsCompleted.includes(sessionId);
+          const levelLabel = `Level ${week.number}${sessionLetterFromId(sessionId)}`;
           return `
             <a class="session-pill ${done ? "done" : ""}" href="./session.html?week=${weekId}&session=${sessionId}&return=trainingen">
-              <div class="session-head"><strong>${s.code}</strong><span class="session-status">${done ? "Gedaan" : "Gepland"}</span></div>
+              <div class="session-head"><strong>${levelLabel}</strong><span class="session-status">${done ? "Gedaan" : "Gepland"}</span></div>
               <p class="session-title">${escapeHtml(s.title)}</p>
             </a>
           `;
@@ -531,7 +533,7 @@ function initSessionPage() {
     if (res.ok) {
       syncCompletedWeekProgress();
       persist();
-      window.location.assign(withRefresh(returnUrl));
+      window.location.replace(withRefresh(returnUrl));
     }
   });
 }
@@ -703,4 +705,13 @@ function withRefresh(url) {
   const u = new URL(url, window.location.href);
   u.searchParams.set("refresh", String(Date.now()));
   return `${u.pathname}${u.search}`;
+}
+
+function sessionLetterFromId(sessionId) {
+  const m = String(sessionId).match(/-s(\d+)$/i);
+  const n = m ? Number(m[1]) : 1;
+  if (n === 1) return "A";
+  if (n === 2) return "B";
+  if (n === 3) return "C";
+  return "A";
 }
