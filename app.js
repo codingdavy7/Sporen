@@ -1,60 +1,58 @@
 const STORAGE_KEY = "teckel_sporen_v1";
 const STORAGE_VERSION = "1.0";
 const TOTAL_WEEKS = 8;
-const DAYS_PER_WEEK = 7;
-const TOTAL_DAYS = TOTAL_WEEKS * DAYS_PER_WEEK;
+const SESSIONS_PER_WEEK = 3;
+const STAR_GOAL = 8;
+const TRAININGS_PER_STAR = 3;
+const SESSION_LABELS = ["A", "B", "C"];
 
 const state = {
   plan: null,
+  selectedTrainingId: null,
   data: {
     version: STORAGE_VERSION,
     sessions: [],
+    completedTrainings: [],
     preferences: {
       dogName: "",
       startDate: todayISO(),
+      profilePhoto: "",
     },
   },
 };
 
-const elements = {
-  programContainer: document.getElementById("program-container"),
-  currentTarget: document.getElementById("current-target"),
-  completion: document.getElementById("completion"),
-  recentSessions: document.getElementById("recent-sessions"),
-  progressBody: document.getElementById("progress-body"),
-  sessionForm: document.getElementById("session-form"),
-  settingsForm: document.getElementById("settings-form"),
-  formError: document.getElementById("form-error"),
-  resetButton: document.getElementById("reset-button"),
-  dogName: document.getElementById("dogName"),
-  startDate: document.getElementById("startDate"),
-  date: document.getElementById("date"),
-  week: document.getElementById("week"),
-  day: document.getElementById("day"),
-  exerciseId: document.getElementById("exerciseId"),
-};
+const page = document.body.dataset.page || "";
 
 init();
 
 async function init() {
   loadStorage();
-  bindEvents();
-  seedFormDefaults();
-  try {
-    await loadPlan();
-  } catch (error) {
-    console.error(error);
-    elements.programContainer.innerHTML = "<p>Kon trainingsplan niet laden.</p>";
-  }
-  renderAll();
+  await loadPlanSafe();
+
+  if (page === "profile") initProfilePage();
+  if (page === "dashboard") initDashboardPage();
+  if (page === "trainingen") initTrainingenPage();
 }
 
-async function loadPlan() {
-  const response = await fetch("./data/plan.json");
-  if (!response.ok) {
-    throw new Error("Kon trainingsplan niet laden.");
+async function loadPlanSafe() {
+  try {
+    const response = await fetch("./data/plan.json");
+    if (!response.ok) throw new Error("Kon plan niet laden");
+    const parsed = await response.json();
+    if (!Array.isArray(parsed.weeks)) throw new Error("Ongeldig plan-formaat");
+    state.plan = parsed;
+  } catch (error) {
+    console.error(error);
+    const container = document.querySelector("main");
+    if (!container) return;
+    const warning = document.createElement("p");
+    warning.className = "muted";
+    warning.textContent =
+      window.location.protocol === "file:"
+        ? "Kon trainingsdata niet laden. Open via lokale server: python3 -m http.server"
+        : "Kon trainingsdata niet laden.";
+    container.prepend(warning);
   }
-  state.plan = await response.json();
 }
 
 function loadStorage() {
@@ -63,17 +61,23 @@ function loadStorage() {
 
   try {
     const parsed = JSON.parse(raw);
-    if (parsed.version !== STORAGE_VERSION) {
-      console.warn("Storage-versie komt niet overeen. Terug naar veilige default.");
-      return;
-    }
-    if (!Array.isArray(parsed.sessions) || typeof parsed.preferences !== "object") {
-      console.warn("Storage-structuur ongeldig. Terug naar veilige default.");
-      return;
-    }
-    state.data = parsed;
+    if (parsed.version !== STORAGE_VERSION) return;
+
+    const preferences = parsed.preferences && typeof parsed.preferences === "object" ? parsed.preferences : {};
+    state.data = {
+      version: STORAGE_VERSION,
+      sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [],
+      completedTrainings: Array.isArray(parsed.completedTrainings)
+        ? parsed.completedTrainings.filter(isValidTrainingId)
+        : [],
+      preferences: {
+        dogName: typeof preferences.dogName === "string" ? preferences.dogName : "",
+        startDate: isIsoDate(preferences.startDate) ? preferences.startDate : todayISO(),
+        profilePhoto: typeof preferences.profilePhoto === "string" ? preferences.profilePhoto : "",
+      },
+    };
   } catch (error) {
-    console.warn("Storage kon niet worden gelezen. Terug naar veilige default.", error);
+    console.warn("Kon storage niet lezen", error);
   }
 }
 
@@ -81,227 +85,325 @@ function saveStorage() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
 }
 
-function bindEvents() {
-  elements.sessionForm.addEventListener("submit", onSubmitSession);
-  elements.settingsForm.addEventListener("submit", onSaveSettings);
-  elements.resetButton.addEventListener("click", onResetData);
-  elements.week.addEventListener("input", syncExerciseId);
-  elements.day.addEventListener("input", syncExerciseId);
+function initProfilePage() {
+  const form = document.getElementById("profile-form");
+  const dogName = document.getElementById("dog-name");
+  const startDate = document.getElementById("start-date");
+  const photoInput = document.getElementById("photo-input");
+  const photoPreview = document.getElementById("photo-preview");
+  const photoRemove = document.getElementById("photo-remove");
+  const msg = document.getElementById("profile-msg");
+
+  dogName.value = state.data.preferences.dogName;
+  startDate.value = state.data.preferences.startDate;
+  renderPhoto(photoPreview, state.data.preferences.profilePhoto);
+
+  photoInput.addEventListener("change", async () => {
+    const file = photoInput.files && photoInput.files[0];
+    if (!file) return;
+    const dataUrl = await readFileAsDataUrl(file);
+    state.data.preferences.profilePhoto = dataUrl;
+    renderPhoto(photoPreview, dataUrl);
+    msg.textContent = "Foto klaar. Klik op Profiel opslaan.";
+  });
+
+  photoRemove.addEventListener("click", () => {
+    state.data.preferences.profilePhoto = "";
+    photoInput.value = "";
+    renderPhoto(photoPreview, "");
+    msg.textContent = "Foto verwijderd. Klik op Profiel opslaan.";
+  });
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const nextName = dogName.value.trim();
+    const nextDate = startDate.value;
+
+    if (!nextName) {
+      msg.textContent = "Vul een hondennaam in.";
+      return;
+    }
+    if (!isIsoDate(nextDate)) {
+      msg.textContent = "Kies een geldige startdatum.";
+      return;
+    }
+
+    state.data.preferences.dogName = nextName;
+    state.data.preferences.startDate = nextDate;
+    saveStorage();
+    msg.textContent = "Profiel opgeslagen.";
+  });
 }
 
-function seedFormDefaults() {
-  const target = computeCurrentTarget();
-  elements.week.value = String(target.week);
-  elements.day.value = String(target.day);
-  elements.date.value = todayISO();
-  syncExerciseId();
-}
+function initDashboardPage() {
+  const dogGreeting = document.getElementById("dog-greeting");
+  const upcoming = document.getElementById("upcoming-session");
+  const unlockStatus = document.getElementById("unlock-status");
+  const stars = document.getElementById("stars");
+  const progressFill = document.getElementById("progress-fill");
+  const starMeta = document.getElementById("star-meta");
+  const completedMeta = document.getElementById("completed-meta");
 
-function onSubmitSession(event) {
-  event.preventDefault();
-  elements.formError.textContent = "";
+  const dogName = state.data.preferences.dogName || "je hond";
+  dogGreeting.textContent = `Welkom, ${dogName}`;
 
-  const form = new FormData(elements.sessionForm);
-  const session = {
-    id: `${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-    date: String(form.get("date") || ""),
-    week: Number(form.get("week")),
-    day: Number(form.get("day")),
-    exerciseId: String(form.get("exerciseId") || ""),
-    trackLengthM: Number(form.get("trackLengthM")),
-    surface: String(form.get("surface") || ""),
-    distractions: Number(form.get("distractions")),
-    focus: Number(form.get("focus")),
-    success: Number(form.get("success")),
-    notes: String(form.get("notes") || "").trim(),
-  };
+  const completedCount = getCompletedCount();
+  const starsEarned = Math.min(STAR_GOAL, Math.floor(completedCount / TRAININGS_PER_STAR));
+  const unlockedWeeks = getUnlockedWeeks(completedCount);
+  const nextTraining = getNextUpcomingTraining();
 
-  const error = validateSession(session);
-  if (error) {
-    elements.formError.textContent = error;
-    return;
+  if (nextTraining) {
+    upcoming.textContent = `Volgende sessie: Week ${nextTraining.week} - Training ${SESSION_LABELS[nextTraining.session - 1]} (${nextTraining.title})`;
+  } else {
+    upcoming.textContent = "Volgende sessie: alle trainingen voltooid.";
   }
 
-  state.data.sessions.push(session);
-  saveStorage();
-  renderAll();
+  unlockStatus.textContent = `Unlocked: week 1 t/m ${unlockedWeeks}. Voltooi 3 trainingen voor een extra week.`;
 
-  elements.notes.value = "";
-  elements.trackLengthM.value = "";
-  elements.distractions.value = "";
-  elements.focus.value = "";
-  elements.success.value = "";
+  stars.innerHTML = Array.from({ length: STAR_GOAL }, (_, index) => {
+    const filled = index < starsEarned ? "filled" : "";
+    return `<span class=\"star ${filled}\">★</span>`;
+  }).join("");
+
+  const percent = Math.min(100, (starsEarned / STAR_GOAL) * 100);
+  progressFill.style.width = `${percent}%`;
+  starMeta.textContent = `${starsEarned}/${STAR_GOAL} sterren verdiend`;
+  completedMeta.textContent = `${completedCount} trainingen voltooid`;
 }
 
-function onSaveSettings(event) {
-  event.preventDefault();
-  const form = new FormData(elements.settingsForm);
-  const dogName = String(form.get("dogName") || "").trim();
-  const startDate = String(form.get("startDate") || "").trim();
+function initTrainingenPage() {
+  const weeksList = document.getElementById("weeks-list");
+  const detail = document.getElementById("training-detail");
 
-  if (startDate && !isIsoDate(startDate)) {
-    alert("Gebruik een geldige startdatum.");
-    return;
-  }
-
-  state.data.preferences.dogName = dogName;
-  state.data.preferences.startDate = startDate || todayISO();
-  saveStorage();
-  renderDashboard();
-}
-
-function onResetData() {
-  const confirmed = window.confirm("Weet je zeker dat je alle lokale data wilt verwijderen?");
-  if (!confirmed) return;
-
-  localStorage.removeItem(STORAGE_KEY);
-  state.data = {
-    version: STORAGE_VERSION,
-    sessions: [],
-    preferences: {
-      dogName: "",
-      startDate: todayISO(),
-    },
-  };
-  elements.settingsForm.reset();
-  seedFormDefaults();
-  renderAll();
-}
-
-function validateSession(session) {
-  if (!isIsoDate(session.date)) return "Datum is verplicht en moet geldig zijn.";
-  if (session.week < 1 || session.week > TOTAL_WEEKS) return "Week moet tussen 1 en 8 liggen.";
-  if (session.day < 1 || session.day > DAYS_PER_WEEK) return "Dag moet tussen 1 en 7 liggen.";
-  if (!session.exerciseId) return "Exercise ID ontbreekt.";
-  if (!Number.isFinite(session.trackLengthM) || session.trackLengthM < 1) return "Spoorlengte moet minimaal 1 meter zijn.";
-  if (!["gras", "bos", "zand", "mix"].includes(session.surface)) return "Ondergrond is ongeldig.";
-  if (!isRating(session.distractions) || !isRating(session.focus) || !isRating(session.success)) {
-    return "Ratings moeten tussen 1 en 5 liggen.";
-  }
-  return "";
-}
-
-function isRating(value) {
-  return Number.isInteger(value) && value >= 1 && value <= 5;
-}
-
-function isIsoDate(value) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value));
-}
-
-function syncExerciseId() {
-  const week = clamp(Number(elements.week.value || 1), 1, TOTAL_WEEKS);
-  const day = clamp(Number(elements.day.value || 1), 1, DAYS_PER_WEEK);
-  elements.exerciseId.value = `w${week}d${day}`;
-}
-
-function renderAll() {
-  renderDashboard();
-  renderProgram();
-  renderProgress();
-  hydrateSettings();
-}
-
-function renderDashboard() {
-  const target = computeCurrentTarget();
-  elements.currentTarget.textContent = `Week ${target.week}, Dag ${target.day}`;
-  elements.completion.textContent = `${completionPercent()}%`;
-
-  const recent = [...state.data.sessions]
-    .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id))
-    .slice(0, 3);
-
-  if (recent.length === 0) {
-    elements.recentSessions.innerHTML = "<li>Nog geen sessies gelogd.</li>";
-    return;
-  }
-
-  elements.recentSessions.innerHTML = recent
-    .map(
-      (session) =>
-        `<li class="session-item"><strong>${session.date}</strong> · Week ${session.week}, Dag ${session.day}<br /><small>${session.surface}, ${session.trackLengthM}m, focus ${session.focus}/5, succes ${session.success}/5</small></li>`
-    )
-    .join("");
-}
-
-function completionPercent() {
-  const uniqueDone = new Set(state.data.sessions.map((s) => `${s.week}-${s.day}`)).size;
-  return Math.round((uniqueDone / TOTAL_DAYS) * 100);
-}
-
-function computeCurrentTarget() {
-  const startRaw = state.data.preferences.startDate || todayISO();
-  const start = new Date(`${startRaw}T00:00:00`);
-  const now = new Date();
-  const diffMs = now.getTime() - start.getTime();
-  const diffDays = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
-  const progressIndex = clamp(diffDays, 0, TOTAL_DAYS - 1);
-  const week = Math.floor(progressIndex / DAYS_PER_WEEK) + 1;
-  const day = (progressIndex % DAYS_PER_WEEK) + 1;
-  return { week, day };
-}
-
-function renderProgram() {
   if (!state.plan || !Array.isArray(state.plan.weeks)) {
-    elements.programContainer.innerHTML = "<p>Kon programma niet laden.</p>";
+    weeksList.innerHTML = "<p class=\"muted\">Trainingsdata niet beschikbaar.</p>";
     return;
   }
 
-  elements.programContainer.innerHTML = state.plan.weeks
+  weeksList.addEventListener("click", (event) => {
+    const sessionButton = event.target.closest("button[data-training-id]");
+    if (sessionButton) {
+      state.selectedTrainingId = sessionButton.dataset.trainingId;
+      renderTrainingenPage();
+      return;
+    }
+
+    const toggleButton = event.target.closest("button[data-toggle-id]");
+    if (toggleButton) {
+      const id = toggleButton.dataset.toggleId;
+      toggleTrainingCompletion(id);
+      renderTrainingenPage();
+    }
+  });
+
+  detail.addEventListener("click", (event) => {
+    const toggleButton = event.target.closest("button[data-toggle-id]");
+    if (!toggleButton) return;
+    toggleTrainingCompletion(toggleButton.dataset.toggleId);
+    renderTrainingenPage();
+  });
+
+  renderTrainingenPage();
+}
+
+function renderTrainingenPage() {
+  const weeksList = document.getElementById("weeks-list");
+  const detail = document.getElementById("training-detail");
+  const completed = getCompletedSet();
+  const unlockedWeeks = getUnlockedWeeks(completed.size);
+
+  const weekCards = state.plan.weeks
     .map((week) => {
-      const days = week.days
-        .map(
-          (day) => `
-          <article class="day-card">
-            <h4>Dag ${day.dayNumber}: ${escapeHtml(day.title)}</h4>
-            <p><strong>Setup:</strong> ${escapeHtml(day.setup)}</p>
-            <ul>${day.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ul>
-            <p><strong>Succescriterium:</strong> ${escapeHtml(day.successCriteria)}</p>
-          </article>
-        `
-        )
+      const unlocked = week.weekNumber <= unlockedWeeks;
+      if (!unlocked) return "";
+
+      const sessionButtons = week.sessions
+        .map((session, idx) => {
+          const sessionNumber = idx + 1;
+          const id = toTrainingId(week.weekNumber, sessionNumber);
+          const isDone = completed.has(id);
+          const isActive = state.selectedTrainingId === id;
+          const activeClass = isActive ? "active" : "";
+          const doneClass = isDone ? "done" : "";
+          const stateLabel = isDone ? "Gedaan" : "Open";
+
+          return `
+            <button type=\"button\" class=\"session-btn ${activeClass} ${doneClass}\" data-training-id=\"${id}\">
+              Training ${SESSION_LABELS[idx]}: ${escapeHtml(session.title)}
+              <span class=\"session-state\">${stateLabel}</span>
+            </button>
+          `;
+        })
         .join("");
 
       return `
-        <details class="week" ${week.weekNumber === 1 ? "open" : ""}>
-          <summary>Week ${week.weekNumber} · ${escapeHtml(week.goal)}</summary>
-          ${days}
-        </details>
+        <article class=\"week-card\">
+          <h3 class=\"week-title\">Week ${week.weekNumber} - ${escapeHtml(week.theme)}</h3>
+          <div class=\"session-list\">${sessionButtons}</div>
+        </article>
       `;
     })
     .join("");
-}
 
-function renderProgress() {
-  const rows = [];
+  weeksList.innerHTML = weekCards;
 
-  for (let week = 1; week <= TOTAL_WEEKS; week += 1) {
-    const sessions = state.data.sessions.filter((s) => s.week === week);
-    const count = sessions.length;
-    const focusAvg = count > 0 ? average(sessions.map((s) => s.focus)).toFixed(1) : "-";
-    const successAvg = count > 0 ? average(sessions.map((s) => s.success)).toFixed(1) : "-";
-
-    rows.push(`
-      <tr>
-        <td>Week ${week}</td>
-        <td>${count}</td>
-        <td class="${focusAvg !== "-" && Number(focusAvg) >= 4 ? "good" : ""}">${focusAvg}</td>
-        <td class="${successAvg !== "-" && Number(successAvg) >= 4 ? "good" : ""}">${successAvg}</td>
-      </tr>
-    `);
+  if (!state.selectedTrainingId || !completedTrainingExists(state.selectedTrainingId, unlockedWeeks)) {
+    state.selectedTrainingId = firstUnlockedTrainingId(unlockedWeeks);
   }
 
-  elements.progressBody.innerHTML = rows.join("");
+  detail.innerHTML = buildTrainingDetailHtml(state.selectedTrainingId, completed);
 }
 
-function hydrateSettings() {
-  elements.dogName.value = state.data.preferences.dogName || "";
-  elements.startDate.value = state.data.preferences.startDate || todayISO();
+function buildTrainingDetailHtml(trainingId, completedSet) {
+  const training = getTrainingById(trainingId);
+  if (!training) return "Selecteer een training links.";
+
+  const done = completedSet.has(trainingId);
+  const toggleLabel = done ? "Markeer als niet gedaan" : "Markeer als gedaan";
+
+  return `
+    <h3>Week ${training.week} - Training ${SESSION_LABELS[training.session - 1]}</h3>
+    <p><strong>Titel:</strong> ${escapeHtml(training.title)}</p>
+    <p><strong>Doel:</strong> ${escapeHtml(training.goal)}</p>
+    <p><strong>Spoor:</strong> ${escapeHtml(training.track)}</p>
+    <p><strong>Snoepjes:</strong> ${escapeHtml(training.snacks)}</p>
+    <p><strong>Leeftijd spoor:</strong> ${escapeHtml(training.trackAge)}</p>
+    <p><strong>Benodigdheden:</strong> ${escapeHtml(training.materials.join(", "))}</p>
+    <button type=\"button\" class=\"button\" data-toggle-id=\"${trainingId}\">${toggleLabel}</button>
+  `;
 }
 
-function average(values) {
-  const total = values.reduce((acc, value) => acc + value, 0);
-  return total / values.length;
+function toggleTrainingCompletion(trainingId) {
+  const set = new Set(state.data.completedTrainings.filter(isValidTrainingId));
+  if (set.has(trainingId)) {
+    set.delete(trainingId);
+  } else {
+    set.add(trainingId);
+  }
+  state.data.completedTrainings = [...set].sort();
+  saveStorage();
+}
+
+function getCompletedSet() {
+  const fromManual = new Set(state.data.completedTrainings.filter(isValidTrainingId));
+  const fromSessions = state.data.sessions
+    .filter((session) => Number.isInteger(session.week) && Number.isInteger(session.day))
+    .map((session) => toTrainingId(session.week, session.day))
+    .filter(isValidTrainingId);
+
+  fromSessions.forEach((id) => fromManual.add(id));
+  return fromManual;
+}
+
+function getCompletedCount() {
+  return getCompletedSet().size;
+}
+
+function getUnlockedWeeks(completedCount) {
+  const unlocked = 2 + Math.floor(completedCount / TRAININGS_PER_STAR);
+  return clamp(unlocked, 2, TOTAL_WEEKS);
+}
+
+function getNextUpcomingTraining() {
+  if (!state.plan || !Array.isArray(state.plan.weeks)) return null;
+
+  const completed = getCompletedSet();
+  const unlockedWeeks = getUnlockedWeeks(completed.size);
+
+  for (let week = 1; week <= unlockedWeeks; week += 1) {
+    for (let session = 1; session <= SESSIONS_PER_WEEK; session += 1) {
+      const id = toTrainingId(week, session);
+      if (completed.has(id)) continue;
+
+      const weekData = state.plan.weeks.find((item) => item.weekNumber === week);
+      const sessionData = weekData && weekData.sessions[session - 1];
+      if (!sessionData) continue;
+
+      return {
+        week,
+        session,
+        title: sessionData.title,
+      };
+    }
+  }
+
+  return null;
+}
+
+function completedTrainingExists(trainingId, unlockedWeeks) {
+  const training = getTrainingById(trainingId);
+  return Boolean(training && training.week <= unlockedWeeks);
+}
+
+function firstUnlockedTrainingId(unlockedWeeks) {
+  for (let week = 1; week <= unlockedWeeks; week += 1) {
+    for (let session = 1; session <= SESSIONS_PER_WEEK; session += 1) {
+      if (getTrainingById(toTrainingId(week, session))) {
+        return toTrainingId(week, session);
+      }
+    }
+  }
+  return null;
+}
+
+function getTrainingById(trainingId) {
+  if (!isValidTrainingId(trainingId) || !state.plan) return null;
+
+  const [weekRaw, sessionRaw] = trainingId.split("-");
+  const week = Number(weekRaw);
+  const session = Number(sessionRaw);
+
+  const weekData = state.plan.weeks.find((item) => item.weekNumber === week);
+  if (!weekData || !Array.isArray(weekData.sessions)) return null;
+
+  const sessionData = weekData.sessions[session - 1];
+  if (!sessionData) return null;
+
+  return {
+    week,
+    session,
+    title: sessionData.title,
+    goal: sessionData.goal,
+    track: sessionData.track,
+    snacks: sessionData.snacks,
+    trackAge: sessionData.trackAge,
+    materials: Array.isArray(sessionData.materials) ? sessionData.materials : [],
+  };
+}
+
+function isValidTrainingId(value) {
+  if (typeof value !== "string" || !/^\d+-\d+$/.test(value)) return false;
+  const [weekRaw, sessionRaw] = value.split("-");
+  const week = Number(weekRaw);
+  const session = Number(sessionRaw);
+  return week >= 1 && week <= TOTAL_WEEKS && session >= 1 && session <= SESSIONS_PER_WEEK;
+}
+
+function toTrainingId(week, session) {
+  return `${week}-${session}`;
+}
+
+function renderPhoto(img, dataUrl) {
+  if (!dataUrl) {
+    img.src = "";
+    img.classList.add("hidden");
+    return;
+  }
+  img.src = dataUrl;
+  img.classList.remove("hidden");
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Kon foto niet lezen"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function isIsoDate(value) {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value));
 }
 
 function todayISO() {
@@ -321,6 +423,6 @@ function escapeHtml(value) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
+    .replace(/\"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }

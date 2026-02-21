@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profiel - Teckel Sporen Coach</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-page="profile">
+    <header class="topbar">
+      <h1>Teckel Sporen Coach</h1>
+      <nav class="nav">
+        <a class="nav-link active" href="./profile.html">Profiel</a>
+        <a class="nav-link" href="./dashboard.html">Dashboard</a>
+        <a class="nav-link" href="./trainingen.html">Trainingen</a>
+      </nav>
+    </header>
+
+    <main class="page">
+      <section class="card">
+        <h2>Profiel</h2>
+        <form id="profile-form" class="form-grid">
+          <div class="form-row">
+            <label for="dog-name">Naam van je hond</label>
+            <input id="dog-name" name="dogName" type="text" maxlength="60" required />
+          </div>
+
+          <div class="form-row">
+            <label for="start-date">Startdatum schema</label>
+            <input id="start-date" name="startDate" type="date" required />
+          </div>
+
+          <div class="form-row">
+            <label for="photo-input">Profielfoto</label>
+            <input id="photo-input" name="photo" type="file" accept="image/*" />
+          </div>
+
+          <div class="photo-wrap">
+            <img id="photo-preview" class="photo-preview" alt="Profielfoto hond" />
+            <button id="photo-remove" class="button ghost" type="button">Foto verwijderen</button>
+          </div>
+
+          <p id="profile-msg" class="form-msg" aria-live="polite"></p>
+          <button class="button" type="submit">Profiel opslaan</button>
+        </form>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trainingen - Teckel Sporen Coach</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-page="trainingen">
+    <header class="topbar">
+      <h1>Teckel Sporen Coach</h1>
+      <nav class="nav">
+        <a class="nav-link" href="./profile.html">Profiel</a>
+        <a class="nav-link" href="./dashboard.html">Dashboard</a>
+        <a class="nav-link active" href="./trainingen.html">Trainingen</a>
+      </nav>
+    </header>
+
+    <main class="page page-grid">
+      <section class="card">
+        <h2>Trainingsweken</h2>
+        <p class="muted">Week 1 en 2 zijn open. Daarna unlock je elke week per 3 voltooide trainingen.</p>
+        <div id="weeks-list" class="weeks-list"></div>
+      </section>
+
+      <section class="card">
+        <h2>Training details</h2>
+        <article id="training-detail" class="training-detail">Selecteer een training links.</article>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
