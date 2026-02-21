@@ -41,6 +41,13 @@ body {
 .topbar-row {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
   gap: 0.65rem;
 }
 
@@ -68,6 +75,8 @@ body {
 .nav-main { display: flex; gap: 0.45rem; flex-wrap: wrap; }
 
 .nav-link {
+  appearance: none;
+  font: inherit;
   text-decoration: none;
   color: var(--text);
   border: 1px solid var(--border);
@@ -79,10 +88,24 @@ body {
   display: inline-flex;
   align-items: center;
   transition: transform 0.15s ease, background-color 0.15s ease;
+  cursor: pointer;
 }
 
 .nav-link.active { background: var(--brand); color: #04111a; border-color: var(--brand); }
 .nav-link:hover { transform: translateY(-1px); background: #1b3a34; }
+
+.settings-link {
+  text-decoration: none;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card-alt);
+  color: var(--text);
+  padding: 0.5rem 0.75rem;
+  font-weight: 700;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+}
 
 .page {
   width: min(1200px, 100% - 1rem);

@@ -1,15 +1,11 @@
 import {
   DAYS,
-  autoReshuffleWeek,
   completeSession,
   createPlannerState,
   markSessionMissed,
   moveSession,
   replanFromBacklog,
-  resetWeek,
-  saveWeekNotes,
   setCurrentWeek,
-  validateWeek,
 } from "./core/trainingEngine.js";
 
 const STORAGE_KEY = "teckel_sporen_v1";
@@ -265,12 +261,7 @@ function initTrainingenPage() {
   const monthNext = document.getElementById("month-next");
   const monthLabel = document.getElementById("month-label");
   const monthCalendar = document.getElementById("month-calendar");
-  const warningsList = document.getElementById("warnings-list");
   const backlogList = document.getElementById("backlog-list");
-  const notes = document.getElementById("week-notes");
-  const saveNotesButton = document.getElementById("save-notes");
-  const autoButton = document.getElementById("auto-reshuffle");
-  const resetButton = document.getElementById("reset-week");
   const msg = document.getElementById("action-msg");
   const qs = new URLSearchParams(window.location.search);
   const movedSessionId = qs.get("moved") || "";
@@ -308,16 +299,15 @@ function initTrainingenPage() {
 
   const buildScheduledEntries = () => {
     const entries = [];
-    for (let week = 1; week <= unlockedWeeks; week += 1) {
-      const weekId = `w${week}`;
-      const weekData = state.planner.weeksById[weekId];
-      if (!weekData) continue;
-      for (const dayName of DAYS) {
-        for (const sessionId of weekData.calendar[dayName]) {
-          const session = state.planner.sessionsById[sessionId];
-          const date = resolveSessionDate(week, dayName);
-          entries.push({ sessionId, weekId, weekNumber: week, code: session.code, title: session.title, iso: toIso(date) });
-        }
+    const week = Number(weekSelect.value.replace("w", ""));
+    const weekId = `w${week}`;
+    const weekData = state.planner.weeksById[weekId];
+    if (!weekData) return entries;
+    for (const dayName of DAYS) {
+      for (const sessionId of weekData.calendar[dayName]) {
+        const session = state.planner.sessionsById[sessionId];
+        const date = resolveSessionDate(week, dayName);
+        entries.push({ sessionId, weekId, weekNumber: week, code: session.code, title: session.title, iso: toIso(date) });
       }
     }
     return entries.sort((a, b) => a.iso.localeCompare(b.iso));
@@ -368,7 +358,6 @@ function initTrainingenPage() {
 
     weekTitle.textContent = `Week ${week.number}`;
     weekGoal.textContent = week.title;
-    notes.value = week.notes || "";
 
     calendar.innerHTML = DAYS.map((day) => {
       const dayDate = resolveSessionDate(week.number, day);
@@ -389,9 +378,6 @@ function initTrainingenPage() {
 
       return `<section class="day-col"><h4>${day} ${dayDate.getDate()}</h4>${sessions || "<p class='muted'>Rust</p>"}</section>`;
     }).join("");
-
-    const warnings = validateWeek(week, state.planner.sessionsById);
-    warningsList.innerHTML = warnings.length ? warnings.map((w) => `<li>${escapeHtml(w.message)}</li>`).join("") : "<li>Geen waarschuwingen.</li>";
 
     backlogList.innerHTML = week.backlog.length
       ? week.backlog
@@ -426,25 +412,6 @@ function initTrainingenPage() {
   monthNext.addEventListener("click", () => {
     monthCursor = new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 1);
     renderMonthCalendar();
-  });
-
-  saveNotesButton.addEventListener("click", () => {
-    const res = saveWeekNotes(state.planner, weekSelect.value, notes.value);
-    msg.textContent = res.ok ? "Weeknotities opgeslagen." : "Opslaan notities mislukt.";
-    persist();
-  });
-
-  autoButton.addEventListener("click", () => {
-    const res = autoReshuffleWeek(state.planner, weekSelect.value);
-    msg.textContent = res.ok ? `Auto herschikken uitgevoerd (${res.moved.length} verplaatsingen).` : "Auto herschikken mislukt.";
-    renderWeek();
-  });
-
-  resetButton.addEventListener("click", () => {
-    if (!window.confirm("Week resetten naar basisplanning?")) return;
-    const res = resetWeek(state.planner, weekSelect.value);
-    msg.textContent = res.ok ? "Week gereset." : "Reset mislukt.";
-    renderWeek();
   });
 
   renderWeek();
@@ -925,5 +892,13 @@ function initGlobalNav() {
     if (!drawer.contains(event.target) && !button.contains(event.target)) {
       close();
     }
+  });
+
+  drawer.addEventListener("click", (event) => {
+    const howDan = event.target.closest(".menu-howdan");
+    if (!howDan) return;
+    event.preventDefault();
+    close();
+    window.alert("Work in progress: deze sectie wordt nog uitgewerkt.");
   });
 }

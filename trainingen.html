@@ -9,14 +9,17 @@
   <body data-page="trainingen">
     <header class="topbar">
       <div class="topbar-row">
-        <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false">☰</button>
-        <h1>Teckel Search</h1>
+        <div class="topbar-left">
+          <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false">☰</button>
+          <h1>Teckel Search</h1>
+        </div>
+        <a class="settings-link" href="./profile.html?return=trainingen">🦴 instellingen</a>
       </div>
       <nav class="menu-drawer hidden">
         <a class="nav-link" href="./dashboard.html">Homepagina</a>
         <a class="nav-link active" href="./trainingen.html">Weekdetail</a>
         <a class="nav-link" href="./logboek.html">Logboek</a>
-        <a class="nav-link" href="./profile.html?return=trainingen">Instellingen</a>
+        <button class="nav-link menu-howdan" type="button">hoe_dan?</button>
       </nav>
     </header>
 
@@ -40,20 +43,8 @@
         </div>
         <div id="month-calendar" class="month-calendar"></div>
 
-        <div class="inline-actions">
-          <button id="auto-reshuffle" class="button" type="button">Auto herschikken</button>
-          <button id="reset-week" class="button ghost" type="button">Reset week</button>
-        </div>
-
-        <h3>Waarschuwingen</h3>
-        <ul id="warnings-list" class="simple-list"></ul>
-
         <h3>Backlog (gemiste sessies)</h3>
         <div id="backlog-list" class="backlog-list"></div>
-
-        <h3>Weeknotities</h3>
-        <textarea id="week-notes" rows="4" placeholder="Notities voor deze week..."></textarea>
-        <button id="save-notes" class="button" type="button">Bewaar notities</button>
 
         <p id="action-msg" class="form-msg" aria-live="polite"></p>
       </section>
