@@ -1,0 +1,269 @@
+:root {
+  --bg: #f3efe5;
+  --bg-strong: #e7decd;
+  --card: #fffdf8;
+  --text: #2b251a;
+  --muted: #6a5f4c;
+  --brand: #8f4b24;
+  --brand-strong: #6d3416;
+  --danger: #9f1f1f;
+  --ok: #2b6b42;
+  --border: #d8ccb6;
+  --shadow: 0 12px 32px rgba(54, 38, 20, 0.1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 90% 10%, #f4c07a 0%, transparent 26%),
+    radial-gradient(circle at 8% 0%, #eed8a3 0%, transparent 24%),
+    var(--bg);
+}
+
+.hero {
+  padding: 2.2rem 1rem 1.1rem;
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--brand);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.73rem;
+}
+
+h1 {
+  margin: 0.25rem 0 0.35rem;
+  font-size: clamp(1.7rem, 4.2vw, 2.6rem);
+}
+
+.subtitle {
+  max-width: 42rem;
+  margin: 0 auto;
+  color: var(--muted);
+}
+
+.layout {
+  width: min(1100px, 100% - 1.2rem);
+  margin: 0 auto 2rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1rem;
+  box-shadow: var(--shadow);
+}
+
+h2 {
+  margin-top: 0;
+  font-size: 1.22rem;
+}
+
+h3 {
+  margin: 1.1rem 0 0.6rem;
+  font-size: 1rem;
+}
+
+.dashboard-grid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.metric {
+  padding: 0.8rem;
+  border-radius: 14px;
+  background: var(--bg-strong);
+}
+
+.metric-label {
+  margin: 0 0 0.25rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.metric-value {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.session-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.session-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.65rem;
+  background: #fff;
+}
+
+.session-item small {
+  color: var(--muted);
+}
+
+details.week {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.55rem 0.7rem;
+  background: #fff;
+}
+
+details.week + details.week {
+  margin-top: 0.55rem;
+}
+
+summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.day-card {
+  margin-top: 0.55rem;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 0.55rem;
+  background: #fffaf0;
+}
+
+.day-card h4 {
+  margin: 0 0 0.3rem;
+  font-size: 0.95rem;
+}
+
+.day-card p {
+  margin: 0.2rem 0;
+  font-size: 0.93rem;
+}
+
+.day-card ul {
+  margin: 0.3rem 0 0;
+  padding-left: 1.05rem;
+}
+
+.form-row {
+  display: grid;
+  gap: 0.28rem;
+  margin-bottom: 0.65rem;
+}
+
+.grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+}
+
+input,
+select,
+textarea {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.6rem;
+  background: #fff;
+  width: 100%;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.form-error {
+  min-height: 1.2rem;
+  margin: 0 0 0.55rem;
+  color: var(--danger);
+  font-size: 0.9rem;
+}
+
+.button {
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  padding: 0.62rem 1rem;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.button:hover {
+  background: var(--brand-strong);
+}
+
+.button.danger {
+  margin-top: 0.8rem;
+  background: var(--danger);
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.5rem 0.35rem;
+  border-bottom: 1px solid var(--border);
+}
+
+td.good {
+  color: var(--ok);
+}
+
+@media (max-width: 660px) {
+  .dashboard-grid,
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 920px) {
+  .layout {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .layout section:nth-child(1),
+  .layout section:nth-child(2) {
+    grid-column: span 2;
+  }
+}

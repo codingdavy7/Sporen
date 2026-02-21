@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teckel Sporen Coach</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <p class="eyebrow">MVP</p>
+      <h1>Teckel Sporen Coach</h1>
+      <p class="subtitle">Train je teckel stap voor stap met een 8-weken spoorplan.</p>
+    </header>
+
+    <main class="layout">
+      <section class="card" aria-labelledby="dashboard-title">
+        <h2 id="dashboard-title">Dashboard</h2>
+        <div class="dashboard-grid">
+          <article class="metric">
+            <p class="metric-label">Huidige week/dag</p>
+            <p class="metric-value" id="current-target">Week 1, Dag 1</p>
+          </article>
+          <article class="metric">
+            <p class="metric-label">Voltooiing</p>
+            <p class="metric-value" id="completion">0%</p>
+          </article>
+        </div>
+        <h3>Laatste 3 sessies</h3>
+        <ul id="recent-sessions" class="session-list"></ul>
+      </section>
+
+      <section class="card" aria-labelledby="program-title">
+        <h2 id="program-title">8-weken programma</h2>
+        <div id="program-container" class="program-container"></div>
+      </section>
+
+      <section class="card" aria-labelledby="session-title">
+        <h2 id="session-title">Nieuwe sessie</h2>
+        <form id="session-form" novalidate>
+          <div class="form-row">
+            <label for="date">Datum</label>
+            <input id="date" name="date" type="date" required />
+          </div>
+          <div class="form-row grid-2">
+            <div>
+              <label for="week">Week</label>
+              <input id="week" name="week" type="number" min="1" max="8" required />
+            </div>
+            <div>
+              <label for="day">Dag</label>
+              <input id="day" name="day" type="number" min="1" max="7" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="exerciseId">Exercise ID</label>
+            <input id="exerciseId" name="exerciseId" type="text" readonly required />
+          </div>
+          <div class="form-row">
+            <label for="trackLengthM">Spoorlengte (meter)</label>
+            <input id="trackLengthM" name="trackLengthM" type="number" min="1" required />
+          </div>
+          <div class="form-row">
+            <label for="surface">Ondergrond</label>
+            <select id="surface" name="surface" required>
+              <option value="">Kies ondergrond</option>
+              <option value="gras">Gras</option>
+              <option value="bos">Bos</option>
+              <option value="zand">Zand</option>
+              <option value="mix">Mix</option>
+            </select>
+          </div>
+          <div class="form-row grid-3">
+            <div>
+              <label for="distractions">Afleiding (1-5)</label>
+              <input id="distractions" name="distractions" type="number" min="1" max="5" required />
+            </div>
+            <div>
+              <label for="focus">Focus (1-5)</label>
+              <input id="focus" name="focus" type="number" min="1" max="5" required />
+            </div>
+            <div>
+              <label for="success">Succes (1-5)</label>
+              <input id="success" name="success" type="number" min="1" max="5" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="notes">Notities</label>
+            <textarea id="notes" name="notes" rows="3" maxlength="600"></textarea>
+          </div>
+          <p id="form-error" class="form-error" role="alert"></p>
+          <button type="submit" class="button">Sessie opslaan</button>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="progress-title">
+        <h2 id="progress-title">Voortgang</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Week</th>
+                <th>Sessies</th>
+                <th>Gem. focus</th>
+                <th>Gem. succes</th>
+              </tr>
+            </thead>
+            <tbody id="progress-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="settings-title">
+        <h2 id="settings-title">Instellingen</h2>
+        <form id="settings-form">
+          <div class="form-row">
+            <label for="dogName">Hondennaam</label>
+            <input id="dogName" name="dogName" type="text" maxlength="60" />
+          </div>
+          <div class="form-row">
+            <label for="startDate">Startdatum programma</label>
+            <input id="startDate" name="startDate" type="date" />
+          </div>
+          <button type="submit" class="button">Instellingen bewaren</button>
+        </form>
+        <button id="reset-button" class="button danger" type="button">Data resetten</button>
+      </section>
+    </main>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>

@@ -1,0 +1,444 @@
+{
+  "weeks": [
+    {
+      "weekNumber": 1,
+      "goal": "Rustig starten met rechte, korte sporen",
+      "days": [
+        {
+          "dayNumber": 1,
+          "title": "Kennismaken met geurspoor",
+          "setup": "Recht spoor van 15m op gras, 1 bochtloos traject.",
+          "steps": ["Laat spoor 5 minuten rusten.", "Werk rustig aan korte lijn.", "Beloon direct op einde spoor."],
+          "successCriteria": "Teckel volgt het spoor zonder trekken of afdwalen."
+        },
+        {
+          "dayNumber": 2,
+          "title": "Herhaling korte lijn",
+          "setup": "Recht spoor van 20m op gras met voerbeloningen elke 5m.",
+          "steps": ["Rusttijd 5 minuten.", "Houd tempo laag.", "Stop kort als focus zakt."],
+          "successCriteria": "Minstens 80% van het spoor met neus laag gevolgd."
+        },
+        {
+          "dayNumber": 3,
+          "title": "Eerste mini-uitdaging",
+          "setup": "Recht spoor van 25m op gras, minder voer onderweg.",
+          "steps": ["Rusttijd 7 minuten.", "Beloon op tussenpunt en eindpunt.", "Noteer focusscore."],
+          "successCriteria": "Teckel blijft gemotiveerd tot het eind."
+        },
+        {
+          "dayNumber": 4,
+          "title": "Rustige omgeving",
+          "setup": "Recht spoor van 25m in rustige berm.",
+          "steps": ["Rusttijd 7 minuten.", "Werk in ochtend of avond voor minder prikkels.", "Gebruik vaste startcue."],
+          "successCriteria": "Constante start zonder twijfelmomenten."
+        },
+        {
+          "dayNumber": 5,
+          "title": "Lengte opbouwen",
+          "setup": "Recht spoor van 30m op gras met 1 voorwerp aan het einde.",
+          "steps": ["Rusttijd 8 minuten.", "Markeer begin duidelijk.", "Beloon objectvondst."],
+          "successCriteria": "Spoor volledig uitgelopen met duidelijke objectinteresse."
+        },
+        {
+          "dayNumber": 6,
+          "title": "Focus op start",
+          "setup": "Recht spoor van 20m met extra aandacht voor startprotocol.",
+          "steps": ["Rusttijd 5 minuten.", "Laat teckel 5 seconden ruiken aan start.", "Start pas bij rustige houding."],
+          "successCriteria": "Start verloopt gecontroleerd en zonder springen."
+        },
+        {
+          "dayNumber": 7,
+          "title": "Weekcheck",
+          "setup": "Recht spoor van 30m in bekende omgeving.",
+          "steps": ["Rusttijd 8 minuten.", "Geen voer onderweg.", "Alleen eindbeloning."],
+          "successCriteria": "Teckel volgt spoor zelfstandig met stabiele focus."
+        }
+      ]
+    },
+    {
+      "weekNumber": 2,
+      "goal": "Korte bochten introduceren",
+      "days": [
+        {
+          "dayNumber": 1,
+          "title": "Eerste zachte bocht",
+          "setup": "Spoor van 30m met 1 lichte bocht op gras.",
+          "steps": ["Rusttijd 10 minuten.", "Voerbeloning net na bocht.", "Rustig begeleiden bij hoek."],
+          "successCriteria": "Bocht correct genomen zonder groot zoekgedrag."
+        },
+        {
+          "dayNumber": 2,
+          "title": "Bocht herhalen",
+          "setup": "Spoor van 35m met 1 bocht in L-vorm.",
+          "steps": ["Rusttijd 10 minuten.", "Zorg voor windarme plek.", "Beloon op einde spoor."],
+          "successCriteria": "Neus blijft laag tijdens bochtpassage."
+        },
+        {
+          "dayNumber": 3,
+          "title": "Langer spoor met bocht",
+          "setup": "Spoor van 40m, 1 bocht, gras of lichte bosrand.",
+          "steps": ["Rusttijd 12 minuten.", "Geen voer voor bocht, wel na bocht.", "Observeer tempo."],
+          "successCriteria": "Teckel houdt werktempo en vindt eindpunt."
+        },
+        {
+          "dayNumber": 4,
+          "title": "Twee mini-bochten",
+          "setup": "Spoor van 35m met 2 heel zachte hoeken.",
+          "steps": ["Rusttijd 10 minuten.", "Gebruik duidelijke voetplaatsing.", "Houd lijnspanning constant."],
+          "successCriteria": "Slechts korte aarzeling bij maximaal 1 hoek."
+        },
+        {
+          "dayNumber": 5,
+          "title": "Minder hulp",
+          "setup": "Spoor van 40m met 1 bocht en minder verbale cues.",
+          "steps": ["Rusttijd 12 minuten.", "Laat teckel zelf oplossen.", "Beloon pas op einde."],
+          "successCriteria": "Zelfstandig herstel na bocht binnen 5 seconden."
+        },
+        {
+          "dayNumber": 6,
+          "title": "Consistente start + bocht",
+          "setup": "Spoor van 35m met 1 bocht in rustige omgeving.",
+          "steps": ["Rusttijd 10 minuten.", "Vast startprotocol.", "Einde met speelbeloning."],
+          "successCriteria": "Goede start en stabiele bochttechniek."
+        },
+        {
+          "dayNumber": 7,
+          "title": "Weekcheck bochten",
+          "setup": "Spoor van 45m met 2 bochten op gras.",
+          "steps": ["Rusttijd 12 minuten.", "Geen tussenbeloningen.", "Volledige evaluatie noteren."],
+          "successCriteria": "Twee bochten haalbaar met beperkte ondersteuning."
+        }
+      ]
+    },
+    {
+      "weekNumber": 3,
+      "goal": "Sporen verlengen en veroudering verhogen",
+      "days": [
+        {
+          "dayNumber": 1,
+          "title": "Veroudering 15 minuten",
+          "setup": "Spoor van 45m met 1 bocht, rusttijd 15 minuten.",
+          "steps": ["Werk met lange lijn.", "Beloon op object aan einde.", "Noteer zoekmomenten."],
+          "successCriteria": "Spoor correct gevolgd ondanks langere rusttijd."
+        },
+        {
+          "dayNumber": 2,
+          "title": "50m spoor",
+          "setup": "Spoor van 50m met 1 bocht op gras.",
+          "steps": ["Rusttijd 15 minuten.", "Beperk stemhulp.", "Houd ritme gelijk."],
+          "successCriteria": "Teckel houdt focus over volledige lengte."
+        },
+        {
+          "dayNumber": 3,
+          "title": "Bosrand kennismaking",
+          "setup": "Spoor van 40m in bosrand met natuurlijke geuren.",
+          "steps": ["Rusttijd 12 minuten.", "Kies overzichtelijk terrein.", "Beloon sterk op eindobject."],
+          "successCriteria": "Geen langdurig afdwalen door omgevingsgeuren."
+        },
+        {
+          "dayNumber": 4,
+          "title": "Twee bochten + 50m",
+          "setup": "Spoor van 50m met 2 lichte bochten.",
+          "steps": ["Rusttijd 15 minuten.", "Voer slechts 1 tussenbeloning.", "Meet hersteltijd bij fouten."],
+          "successCriteria": "Herstel na fout binnen 10 seconden."
+        },
+        {
+          "dayNumber": 5,
+          "title": "Meer zelfstandigheid",
+          "setup": "Spoor van 55m, 2 bochten, gras.",
+          "steps": ["Rusttijd 15 minuten.", "Stilte tijdens werken.", "Beloon pas einde."],
+          "successCriteria": "Teckel werkt zelfstandig met stabiele neushouding."
+        },
+        {
+          "dayNumber": 6,
+          "title": "Variatie ondergrond",
+          "setup": "Spoor van 45m over gras en kort stuk zand.",
+          "steps": ["Rusttijd 12 minuten.", "Observeer overgang tussen ondergronden.", "Extra beloning bij overgang."],
+          "successCriteria": "Overgang zonder verlies van spoor."
+        },
+        {
+          "dayNumber": 7,
+          "title": "Weekcheck afstand",
+          "setup": "Spoor van 60m met 2 bochten.",
+          "steps": ["Rusttijd 15 minuten.", "Geen voer onderweg.", "Volledige score invullen."],
+          "successCriteria": "60m haalbaar met gecontroleerd tempo."
+        }
+      ]
+    },
+    {
+      "weekNumber": 4,
+      "goal": "Moeilijkheid omhoog met extra bochten",
+      "days": [
+        {
+          "dayNumber": 1,
+          "title": "Drie bochten basis",
+          "setup": "Spoor van 55m met 3 bochten op gras.",
+          "steps": ["Rusttijd 15 minuten.", "Beloon na tweede bocht.", "Werk met ruime lijn."],
+          "successCriteria": "Minimaal 2 van de 3 bochten direct correct."
+        },
+        {
+          "dayNumber": 2,
+          "title": "L-vorm + Uitswing",
+          "setup": "Spoor van 60m met variërende bochthoeken.",
+          "steps": ["Rusttijd 18 minuten.", "Duidelijke staplijn zetten.", "Stuur alleen als nodig."],
+          "successCriteria": "Teckel corrigeert zelf na lichte uitswing."
+        },
+        {
+          "dayNumber": 3,
+          "title": "Bosomgeving licht",
+          "setup": "Spoor van 50m met 2 bochten in bosrand.",
+          "steps": ["Rusttijd 15 minuten.", "Kies rustig moment van de dag.", "Eindobject goed markeren."],
+          "successCriteria": "Focusscore minstens 3/5."
+        },
+        {
+          "dayNumber": 4,
+          "title": "Veroudering 20 minuten",
+          "setup": "Spoor van 60m met 2 bochten, 20 minuten rust.",
+          "steps": ["Check windrichting.", "Rustige start.", "Beloon op eindpunt."],
+          "successCriteria": "Spoorwerk stabiel ondanks oudere geur."
+        },
+        {
+          "dayNumber": 5,
+          "title": "Combi-ondergrond",
+          "setup": "Spoor van 55m op gras naar zandovergang.",
+          "steps": ["Rusttijd 18 minuten.", "Beperk lijnhulp.", "Registreer moeite overgang."],
+          "successCriteria": "Overgang lukt zonder spoorverlies >10 sec."
+        },
+        {
+          "dayNumber": 6,
+          "title": "Techniekdag",
+          "setup": "Korter spoor van 45m met 2 scherpe bochten.",
+          "steps": ["Rusttijd 12 minuten.", "Focus op nauwkeurige bochten.", "Extra beloning bij nette hoek."],
+          "successCriteria": "Scherpe bochten met gecontroleerde neusactie."
+        },
+        {
+          "dayNumber": 7,
+          "title": "Weekcheck bochtcomplexiteit",
+          "setup": "Spoor van 65m met 3 bochten, gemengd terrein.",
+          "steps": ["Rusttijd 20 minuten.", "Geen tussenvoer.", "Volledige log evalueren."],
+          "successCriteria": "Drie bochten haalbaar met maximaal 2 correcties."
+        }
+      ]
+    },
+    {
+      "weekNumber": 5,
+      "goal": "Afleiding gecontroleerd toevoegen",
+      "days": [
+        {
+          "dayNumber": 1,
+          "title": "Lichte afleiding op afstand",
+          "setup": "Spoor 60m met 2 bochten, lichte geluiden op achtergrond.",
+          "steps": ["Rusttijd 18 minuten.", "Start wanneer hond rustig is.", "Beloon focusmomenten."],
+          "successCriteria": "Teckel blijft spoorgericht ondanks geluid."
+        },
+        {
+          "dayNumber": 2,
+          "title": "Menselijke geur nabij",
+          "setup": "Spoor 60m waar iemand op afstand passeert.",
+          "steps": ["Rusttijd 18 minuten.", "Houd lijn rustig.", "Niet verbaal corrigeren tenzij nodig."],
+          "successCriteria": "Korte check naar afleiding, daarna terug op spoor."
+        },
+        {
+          "dayNumber": 3,
+          "title": "Afleiding + bocht",
+          "setup": "Spoor 65m met 3 bochten en matige afleiding.",
+          "steps": ["Rusttijd 20 minuten.", "Observeer punt met meeste fouten.", "Beloon op einde."],
+          "successCriteria": "Succes >=3/5 bij matige afleiding."
+        },
+        {
+          "dayNumber": 4,
+          "title": "Rustige hersteltraining",
+          "setup": "Spoor 50m met 1 bocht, lage afleiding.",
+          "steps": ["Rusttijd 15 minuten.", "Eenvoudiger traject.", "Focus op vertrouwen."],
+          "successCriteria": "Vlotte, foutarme sessie."
+        },
+        {
+          "dayNumber": 5,
+          "title": "Afleiding door geurkruising",
+          "setup": "Spoor 65m met 2 bochten en 1 gecontroleerde kruising.",
+          "steps": ["Rusttijd 20 minuten.", "Laat hond zelf uitwerken.", "Time herstelduur."],
+          "successCriteria": "Herstel na kruising binnen 15 seconden."
+        },
+        {
+          "dayNumber": 6,
+          "title": "Veroudering 25 minuten",
+          "setup": "Spoor 60m met 2 bochten, 25 minuten rusttijd.",
+          "steps": ["Gebruik bekende ondergrond.", "Minimale hulp.", "Log focus zorgvuldig."],
+          "successCriteria": "Stabiele focus ondanks oudere geur."
+        },
+        {
+          "dayNumber": 7,
+          "title": "Weekcheck afleiding",
+          "setup": "Spoor 70m met 3 bochten en lichte afleiding.",
+          "steps": ["Rusttijd 20 minuten.", "Geen tussenbeloningen.", "Volledige sessiereview noteren."],
+          "successCriteria": "Volledig spoor met beheersbare afleiding."
+        }
+      ]
+    },
+    {
+      "weekNumber": 6,
+      "goal": "Nauwkeurigheid en endurance verhogen",
+      "days": [
+        {
+          "dayNumber": 1,
+          "title": "70m basis",
+          "setup": "Spoor 70m, 2 bochten, lage afleiding.",
+          "steps": ["Rusttijd 20 minuten.", "Constant tempo.", "Beloon op einde."],
+          "successCriteria": "70m stabiel zonder grote onderbreking."
+        },
+        {
+          "dayNumber": 2,
+          "title": "75m met hoekwissel",
+          "setup": "Spoor 75m met 3 verschillende bochthoeken.",
+          "steps": ["Rusttijd 22 minuten.", "Observeer bochttechniek.", "Log moeilijkste punt."],
+          "successCriteria": "Maximaal 2 korte zoekmomenten."
+        },
+        {
+          "dayNumber": 3,
+          "title": "Gemengde ondergrond",
+          "setup": "Spoor 65m op gras-bos-zandmix.",
+          "steps": ["Rusttijd 20 minuten.", "Werk lijn lang.", "Extra beloning na moeilijke overgang."],
+          "successCriteria": "Goede overgang tussen alle ondergronden."
+        },
+        {
+          "dayNumber": 4,
+          "title": "Hersteldag techniek",
+          "setup": "Spoor 55m met 2 nette bochten.",
+          "steps": ["Rusttijd 15 minuten.", "Focus op nauwkeurigheid.", "Beloon elke nette hoek."],
+          "successCriteria": "Technisch nette uitvoering met hoge focus."
+        },
+        {
+          "dayNumber": 5,
+          "title": "80m uitdaging",
+          "setup": "Spoor 80m met 3 bochten.",
+          "steps": ["Rusttijd 25 minuten.", "Start rustig.", "Geen voer onderweg."],
+          "successCriteria": "Eindpunt bereikt met succes >=3/5."
+        },
+        {
+          "dayNumber": 6,
+          "title": "Afleiding op middelhoog niveau",
+          "setup": "Spoor 70m met 2 bochten en omgevingsgeluid.",
+          "steps": ["Rusttijd 22 minuten.", "Houd handler rustig.", "Corrigeer minimaal."],
+          "successCriteria": "Teckel blijft merendeels spoorvast."
+        },
+        {
+          "dayNumber": 7,
+          "title": "Weekcheck endurance",
+          "setup": "Spoor 80m met 3 bochten in mixterrein.",
+          "steps": ["Rusttijd 25 minuten.", "Volledige scorekaart invullen.", "Eindbeloning hoogwaardig."],
+          "successCriteria": "80m consistent en met gecontroleerde bochten."
+        }
+      ]
+    },
+    {
+      "weekNumber": 7,
+      "goal": "Complexere spoorbeelden en zelfstandigheid",
+      "days": [
+        {
+          "dayNumber": 1,
+          "title": "Bochtcluster",
+          "setup": "Spoor 75m met 4 bochten dicht op elkaar.",
+          "steps": ["Rusttijd 25 minuten.", "Laat hond probleemoplossend werken.", "Beloon pas op einde."],
+          "successCriteria": "Bochtcluster opgelost met beperkte hulp."
+        },
+        {
+          "dayNumber": 2,
+          "title": "Veroudering 30 minuten",
+          "setup": "Spoor 70m met 3 bochten, 30 minuten rusttijd.",
+          "steps": ["Controleer wind.", "Rustig starten.", "Log herstelmomenten."],
+          "successCriteria": "Oudere geur wordt nog betrouwbaar gevolgd."
+        },
+        {
+          "dayNumber": 3,
+          "title": "Kruising gecontroleerd",
+          "setup": "Spoor 75m met 1 kruising en 3 bochten.",
+          "steps": ["Rusttijd 25 minuten.", "Geen verbale hulp bij kruising.", "Observeer zelfstandigheid."],
+          "successCriteria": "Teckel pakt originele spoorlijn terug."
+        },
+        {
+          "dayNumber": 4,
+          "title": "Technische reset",
+          "setup": "Spoor 60m met 2 bochten, lage afleiding.",
+          "steps": ["Rusttijd 18 minuten.", "Focus op ritme en rust.", "Vlotte beloning."],
+          "successCriteria": "Sterke focusscore (>=4/5) haalbaar."
+        },
+        {
+          "dayNumber": 5,
+          "title": "80m met kruising",
+          "setup": "Spoor 80m met 3 bochten en 1 kruising.",
+          "steps": ["Rusttijd 28 minuten.", "Neutrale handlerhouding.", "Volledige notities maken."],
+          "successCriteria": "Herstel na kruising binnen 20 seconden."
+        },
+        {
+          "dayNumber": 6,
+          "title": "Omgevingsvariatie",
+          "setup": "Spoor 70m in onbekender terrein.",
+          "steps": ["Rusttijd 22 minuten.", "Voorzichtig opbouwen.", "Beloon probleemoplossing."],
+          "successCriteria": "Teckel blijft werkbaar in nieuwe context."
+        },
+        {
+          "dayNumber": 7,
+          "title": "Weekcheck complex",
+          "setup": "Spoor 85m met 4 bochten, mix en lichte kruising.",
+          "steps": ["Rusttijd 30 minuten.", "Geen tussenvoer.", "Complete evaluatie."],
+          "successCriteria": "Complex spoor met functionele zelfstandigheid."
+        }
+      ]
+    },
+    {
+      "weekNumber": 8,
+      "goal": "Eindniveau consolideren en evalueren",
+      "days": [
+        {
+          "dayNumber": 1,
+          "title": "85m consolidatie",
+          "setup": "Spoor 85m met 3 bochten, matige afleiding.",
+          "steps": ["Rusttijd 28 minuten.", "Werk met kalm tempo.", "Eindbeloning."],
+          "successCriteria": "Consistente prestatie op gevorderde lengte."
+        },
+        {
+          "dayNumber": 2,
+          "title": "90m uitdaging",
+          "setup": "Spoor 90m met 4 bochten op mixterrein.",
+          "steps": ["Rusttijd 30 minuten.", "Focus op lijnmanagement.", "Log exacte foutenlocaties."],
+          "successCriteria": "Spoor voltooid met succes >=3/5."
+        },
+        {
+          "dayNumber": 3,
+          "title": "Herstel en precisie",
+          "setup": "Spoor 65m, 2 bochten, weinig afleiding.",
+          "steps": ["Rusttijd 20 minuten.", "Technische nauwkeurigheid oefenen.", "Hoge beloningswaarde."],
+          "successCriteria": "Kwalitatieve uitvoering met focus >=4/5."
+        },
+        {
+          "dayNumber": 4,
+          "title": "30+ minuten veroudering",
+          "setup": "Spoor 80m met 3 bochten, 32 minuten rusttijd.",
+          "steps": ["Kies stabiele weersomstandigheden.", "Rustig begin.", "Evaluatie direct na sessie."],
+          "successCriteria": "Teckel werkt betrouwbaar op oud spoor."
+        },
+        {
+          "dayNumber": 5,
+          "title": "Generalisatie",
+          "setup": "Spoor 75m in volledig nieuwe locatie.",
+          "steps": ["Rusttijd 24 minuten.", "Beperk cues tot minimum.", "Beloon zelfstandige keuzes."],
+          "successCriteria": "Nieuwe omgeving zonder grote prestatiedaling."
+        },
+        {
+          "dayNumber": 6,
+          "title": "Eindrepetitie",
+          "setup": "Spoor 90m met 4 bochten en 1 kruising.",
+          "steps": ["Rusttijd 30 minuten.", "Geen tussenbeloning.", "Volledige score invullen."],
+          "successCriteria": "Volwaardig eindniveau met beheersbare fouten."
+        },
+        {
+          "dayNumber": 7,
+          "title": "Eindtest en review",
+          "setup": "Spoor 95m met 4 bochten, mixondergrond, lichte afleiding.",
+          "steps": ["Rusttijd 30 minuten.", "Voer volledige eindmeting uit.", "Schrijf leerpunten voor vervolg."],
+          "successCriteria": "Eindniveau behaald: spoor afgerond met stabiele focus en herstel."
+        }
+      ]
+    }
+  ]
+}
