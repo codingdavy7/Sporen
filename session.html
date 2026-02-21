@@ -18,7 +18,10 @@
 
     <main class="page">
       <section class="card hero-card">
-        <h2>Training details</h2>
+        <div class="session-headline">
+          <h2>Training details</h2>
+          <button id="open-date-picker" class="icon-button" type="button" aria-label="Kies nieuwe datum">🗓️</button>
+        </div>
         <article id="session-detail" class="training-detail">Sessie laden...</article>
       </section>
 
@@ -26,7 +29,6 @@
         <h3>Training verplaatsen</h3>
         <p class="muted">Gebruik de kalenderknop om een nieuwe datum te kiezen (binnen dezelfde week).</p>
         <div class="inline-actions">
-          <button id="open-date-picker" class="button ghost" type="button">🗓️ Kies nieuwe datum</button>
           <input id="reschedule-date" type="date" class="hidden" />
           <button id="apply-reschedule" class="button" type="button">Datum toepassen</button>
         </div>
@@ -36,18 +38,28 @@
         <h3>Evaluatie</h3>
         <form id="session-log-form" class="form-grid">
           <input id="log-date" type="date" required />
-          <input id="log-surface" type="text" placeholder="Ondergrond (gras/bos/...)" />
-          <input id="log-weather" type="text" placeholder="Weer (wind/droog/nat)" />
+          <select id="log-surface">
+            <option value="gras" selected>Gras</option>
+            <option value="zand">Zand</option>
+            <option value="bos">Bos</option>
+            <option value="asfalt">Asfalt</option>
+            <option value="grind">Grind</option>
+          </select>
+          <select id="log-weather">
+            <option value="droog" selected>Droog</option>
+            <option value="nat">Nat</option>
+            <option value="wind">Wind</option>
+          </select>
           <input id="log-success" type="number" min="0" max="100" placeholder="Succes score 0-100" />
           <select id="log-focus">
             <option value="laag">Focus laag</option>
             <option value="middel" selected>Focus middel</option>
             <option value="hoog">Focus hoog</option>
           </select>
-          <label><input id="obs-nose" type="checkbox" /> Neus omlaag</label>
-          <label><input id="obs-calm" type="checkbox" /> Rustig tempo</label>
-          <label id="obs-turn-wrap"><input id="obs-turn" type="checkbox" /> Bocht gevonden</label>
-          <label><input id="obs-distracted" type="checkbox" /> Afgeleid</label>
+          <label class="check-row"><input id="obs-nose" type="checkbox" /> <span>Neus omlaag</span></label>
+          <label class="check-row"><input id="obs-calm" type="checkbox" /> <span>Rustig tempo</span></label>
+          <label id="obs-turn-wrap" class="check-row"><input id="obs-turn" type="checkbox" /> <span>Bocht gevonden</span></label>
+          <label class="check-row"><input id="obs-distracted" type="checkbox" /> <span>Afgeleid</span></label>
           <div class="form-row">
             <label for="log-photo">Sessie foto</label>
             <input id="log-photo" type="file" accept="image/*" />

@@ -323,6 +323,35 @@ input, textarea, select {
 .backlog-item { border: 1px dashed var(--border); border-radius: 9px; padding: 0.45rem; background: #fff; font-size: 0.86rem; }
 
 .training-detail p { margin: 0.3rem 0; }
+.session-headline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.icon-button {
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 10px;
+  min-width: 38px;
+  min-height: 38px;
+  padding: 0.2rem 0.45rem;
+  cursor: pointer;
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.check-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
 
 .log-list { display: grid; gap: 0.45rem; }
 .log-item { border: 1px solid var(--border); border-radius: 10px; background: #fff; padding: 0.55rem; }

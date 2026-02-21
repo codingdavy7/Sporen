@@ -173,16 +173,23 @@ function initProfilePage() {
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     const name = nameInput.value.trim();
-    const startDate = startInput.value;
+    let startDate = startInput.value;
 
     if (!name) return (msg.textContent = "Vul een naam in.");
-    if (!isIsoDate(startDate)) return (msg.textContent = "Kies een geldige startdatum.");
+    if (!isIsoDate(startDate)) startDate = todayISO();
 
     state.preferences.dogName = name;
     state.preferences.startDate = startDate;
     state.planner.program.dogProfile.name = name;
     persist();
     msg.textContent = "Profiel opgeslagen.";
+  });
+
+  backLink.addEventListener("click", (event) => {
+    if (window.history.length > 1) {
+      event.preventDefault();
+      window.history.back();
+    }
   });
 }
 
@@ -443,6 +450,12 @@ function initSessionPage() {
   const ret = qs.get("return") || "trainingen";
 
   backLink.href = ret === "dashboard" ? "./dashboard.html" : ret === "logboek" ? "./logboek.html" : `./trainingen.html?week=${weekId}`;
+  backLink.addEventListener("click", (event) => {
+    if (window.history.length > 1) {
+      event.preventDefault();
+      window.history.back();
+    }
+  });
 
   const session = state.planner.sessionsById[sessionId];
   if (!session) {
