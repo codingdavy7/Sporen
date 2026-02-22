@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sessie - Teckel Search</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-page="session">
+    <header class="topbar">
+      <div class="topbar-row">
+        <div class="topbar-left">
+          <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false">☰</button>
+          <h1>Teckel Search</h1>
+        </div>
+        <a class="settings-link" href="./profile.html?return=trainingen">🦴 instellingen</a>
+      </div>
+      <nav class="menu-drawer hidden">
+        <a class="nav-link" href="./dashboard.html">Homepagina</a>
+        <a class="nav-link" href="./trainingen.html">Weekdetail</a>
+        <a class="nav-link" href="./logboek.html">Logboek</a>
+        <button class="nav-link menu-howdan" type="button">hoe_dan?</button>
+      </nav>
+    </header>
+
+    <main class="page">
+      <a id="session-back-link" class="button ghost" href="./trainingen.html">← Terug</a>
+      <section class="card hero-card">
+        <div class="session-headline">
+          <h2>Training details</h2>
+          <button id="open-date-picker" class="icon-button" type="button" aria-label="Kies nieuwe datum">🗓️</button>
+        </div>
+        <input id="reschedule-date" type="date" class="hidden" />
+        <button id="apply-reschedule-date" class="button hidden" type="button">Datum opslaan</button>
+        <article id="session-detail" class="training-detail">Sessie laden...</article>
+      </section>
+
+      <section class="card">
+        <div class="inline-actions">
+          <button id="reset-session" class="button ghost" type="button">Reset</button>
+          <button id="open-eval-form" class="button" type="button">Evaluatie</button>
+        </div>
+        <form id="session-log-form" class="form-grid hidden">
+          <input id="log-date" type="date" required />
+          <select id="log-surface">
+            <option value="gras" selected>Gras</option>
+            <option value="zand">Zand</option>
+            <option value="bos">Bos</option>
+            <option value="asfalt">Asfalt</option>
+            <option value="grind">Grind</option>
+          </select>
+          <select id="log-weather">
+            <option value="droog" selected>Droog</option>
+            <option value="nat">Nat</option>
+            <option value="wind">Wind</option>
+          </select>
+          <div class="range-row">
+            <label for="log-success">Succes score: <span id="log-success-value">8</span>/10</label>
+            <input id="log-success" type="range" min="0" max="10" step="1" value="8" />
+          </div>
+          <select id="log-focus">
+            <option value="laag">Focus laag</option>
+            <option value="middel" selected>Focus middel</option>
+            <option value="hoog">Focus hoog</option>
+          </select>
+          <label class="check-row"><input id="obs-nose" type="checkbox" /> <span>Neus omlaag</span></label>
+          <label class="check-row"><input id="obs-calm" type="checkbox" /> <span>Rustig tempo</span></label>
+          <label id="obs-turn-wrap" class="check-row"><input id="obs-turn" type="checkbox" /> <span>Bocht gevonden</span></label>
+          <label class="check-row"><input id="obs-distracted" type="checkbox" /> <span>Afgeleid</span></label>
+          <div class="form-row">
+            <label for="log-photo">Sessie foto</label>
+            <input id="log-photo" type="file" accept="image/*" />
+          </div>
+          <textarea id="log-notes" rows="3" placeholder="Notities..."></textarea>
+          <div class="inline-actions">
+            <button id="complete-session" class="button" type="submit">Opslaan & afvinken</button>
+            <button id="cancel-eval" class="button ghost subtle" type="button">Cancel</button>
+          </div>
+        </form>
+        <p id="action-msg" class="form-msg" aria-live="polite"></p>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

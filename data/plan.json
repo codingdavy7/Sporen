@@ -11,105 +11,103 @@
     "Altijd dezelfde schoenen in begin",
     "Notities (gsm of schriftje)"
   ],
-  "adaptiveLogic": [
-    "Eindig altijd op succes, ook als het klein is.",
-    "Liever 8 minuten goed dan 20 minuten chaos.",
-    "Verhoog maar 1 moeilijkheid per keer: lengte, snoepafstand, bochten of leeftijd spoor.",
-    "Bij mislukking: ga terug naar laatste goede punt en maak direct makkelijker.",
-    "Als je 1 training mist: niet inhalen, volgende sessie 10-20% makkelijker maken.",
-    "Als je 2 trainingen op rij mist: herhaal de vorige succesvolle week.",
-    "Bij 2 moeilijke sessies na elkaar: doe een reset-sessie (kort, vers, veel snoep).",
-    "Bij moeilijke omstandigheden (wind/nat/druk): korter spoor, meer snoep, minder bochten.",
-    "Bij makkelijke omstandigheden: bouw op met slechts 1 stap extra moeilijkheid."
-  ],
   "weeks": [
     {
       "weekNumber": 1,
-      "theme": "Basis snappen (snoepjes dicht op elkaar)",
+      "theme": "Kennismaking (korte rechte lijn, veel snoepjes)",
       "sessions": [
         {
-          "title": "Begrijpen dat snoepjes op jouw spoor liggen",
-          "goal": "Hond koppelt spoor aan beloning",
-          "track": "Rechte lijn 5-8 m op gras",
-          "snacks": "Bijna elke stap",
-          "trackAge": "0-1 min",
-          "materials": ["20-30 kleine snoepjes", "Grote jackpot op einde"]
+          "title": "Training 0",
+          "intro": "Bedenk een passend spoorcommando die je altijd gebruikt om de oefening te starten.",
+          "goal": "Hond bekend maken met het concept sporen. Neus laag houden en rustig zoeken.",
+          "spoor": "Maak van het spoor een snacklijn in plaats van perfecte voetstappen:\n- heel korte rechte lijn (3 m)\n- veel kleine snoepjes op de route\n- hond leert eerst het concept\n- Perfecte spoorprecisie komt later.",
+          "benodigdheden": ["Standaardset", "Extra veel kleine snoepjes (20-30)", "Grote jackpot op het einde"],
+          "extraTip": "Kies een rustige grasstrook zonder afleiding.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         },
         {
-          "title": "Zelfde oefening, iets langer",
-          "goal": "Rustige herhaling met meer meters",
-          "track": "Rechte lijn 8-10 m",
-          "snacks": "Elke stap",
-          "trackAge": "1-2 min",
-          "materials": ["Standaardset", "Zelfde rustige terrein als 1A"]
+          "title": "Training 1A",
+          "goal": "Hond leert: op jouw spoor liggen snoepjes. Neus laag houden en rustig zoeken.",
+          "spoor": "Rechte lijn - 5-8 meter\nElke stap een snoepje\nPraktisch:\nStap -> snoepje laten vallen naast/voor je voet op de spoorlijn -> volgende stap\nDus niet proberen mikken in de afdruk.\nGewoon op de lijn waar jij loopt.\nGebruik heel kleine snoepjes die je snel kan laten vallen (mini stukjes).\nBelangrijk:\nNiet denken: voetafdruk\nWel denken: spoorstrook (een smalle lijn waar ik gelopen heb).",
+          "benodigdheden": ["Standaardset", "Extra veel kleine snoepjes (20-30)", "Grote jackpot op het einde"],
+          "extraTip": "Kies een rustige grasstrook zonder afleiding. Eerste sessie = puur succes.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         },
         {
-          "title": "Startpunt duidelijk maken",
-          "goal": "Startritueel en spoor volgen",
-          "track": "Rechte lijn 10 m",
-          "snacks": "Elke stap + jackpot",
-          "trackAge": "2-3 min",
-          "materials": ["Standaardset", "Startmarkering extra duidelijk"]
+          "title": "Training 1B",
+          "goal": "Zelfde principe bevestigen, iets langer spoor.",
+          "spoor": "Rechte lijn, 8-10 meter. Elke stap een snoepje. Spoorleeftijd: 1-2 min.",
+          "benodigdheden": ["Standaardset", "Zelfde type snoepjes als 1A (consistentie helpt)"],
+          "extraTip": "Werk traag en stil. Hoe minder je coacht, hoe sneller je hond het zelf snapt. Praktisch: stap -> snoepje laten vallen naast/voor je voet op de spoorlijn -> volgende stap. Dus niet proberen mikken in de afdruk, gewoon op de lijn waar jij loopt.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
+        },
+        {
+          "title": "Training 1C",
+          "goal": "Startpunt leren herkennen en spoor tot het einde volgen.",
+          "spoor": "Rechte lijn, 10 meter. Elke stap een snoepje. Jackpot op het einde. Spoorleeftijd: 2-3 min.",
+          "benodigdheden": ["Standaardset", "Duidelijke startmarkering"],
+          "extraTip": "Laat je hond rustig starten. Praktisch: stap -> snoepje laten vallen naast/voor je voet op de spoorlijn -> volgende stap. Dus niet proberen mikken in de afdruk, gewoon op de lijn waar jij loopt.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         }
       ]
     },
     {
       "weekNumber": 2,
-      "theme": "Iets langer + rustiger zoeken",
+      "theme": "Iets langer + eerste mini-bocht",
       "sessions": [
         {
-          "title": "Focus vasthouden",
-          "goal": "Langer geconcentreerd werken",
-          "track": "Rechte lijn 12 m",
-          "snacks": "Elke stap",
-          "trackAge": "3-5 min",
-          "materials": ["Standaardset", "25-35 snoepjes"]
+          "title": "Training 2A",
+          "goal": "Focus iets langer volhouden.",
+          "spoor": "Rechte lijn, 12 meter. Elke stap een snoepje. Spoorleeftijd: 3-5 min.",
+          "benodigdheden": ["Standaardset", "25-35 snoepjes"],
+          "extraTip": "Kom altijd terug naar de start naast je spoor, niet erover.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         },
         {
-          "title": "Variatie in tempo en afstand",
-          "goal": "Iets langer zonder verlies van rust",
-          "track": "Rechte lijn 15 m",
-          "snacks": "Elke stap, laatste 3 stappen extra rijk",
-          "trackAge": "3-5 min",
-          "materials": ["Standaardset", "Sterke jackpot"]
+          "title": "Training 2B",
+          "goal": "Nog iets langer spoor, motivatie hoog houden.",
+          "spoor": "Rechte lijn, 15 meter. Elke stap een snoepje. Laatste 3 stappen + einde extra rijk. Spoorleeftijd: 3-5 min.",
+          "benodigdheden": ["Standaardset", "Sterke jackpot (favoriete snack)"],
+          "extraTip": "Maak je passen niet te groot, dan blijft het spoor leesbaar.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         },
         {
-          "title": "Eerste mini-bocht",
-          "goal": "Introductie bochtgedrag",
-          "track": "10 m recht + zachte bocht + 5 m",
-          "snacks": "Elke stap, rond bocht extra",
-          "trackAge": "2-3 min",
-          "materials": ["Standaardset", "Extra snoepjes rond bocht"]
+          "title": "Training 2C",
+          "goal": "Eerste bochtgevoel introduceren (nog zacht).",
+          "spoor": "10 m recht + zachte bocht + 5 m. Elke stap een snoepje. Rond de bocht extra snoepjes. Spoorleeftijd: 2-3 min.",
+          "benodigdheden": ["Standaardset", "Extra snoepjes voor bochtzone"],
+          "extraTip": "Bocht nog breed maken (geen scherpe hoek forceren).",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         }
       ]
     },
     {
       "weekNumber": 3,
-      "theme": "Eerste echte bocht",
+      "theme": "Eerste echte bocht (90°)",
       "sessions": [
         {
-          "title": "1 bocht correct nemen",
-          "goal": "90 graden bocht technisch oplossen",
-          "track": "10 m + 90 graden bocht + 8 m",
-          "snacks": "Elke stap, bocht + 2 stappen erna extra",
-          "trackAge": "3-5 min",
-          "materials": ["Standaardset", "Eventueel markering voor jou aan start/eind"]
+          "title": "Training 3A",
+          "goal": "1 duidelijke bocht leren nemen.",
+          "spoor": "10 m + 90 graden bocht + 8 m. Elke stap snoep, bocht + 2 stappen erna extra dicht. Spoorleeftijd: 3-5 min.",
+          "benodigdheden": ["Standaardset", "Eventueel 2 markeerpuntjes (start/eind, enkel voor jou)"],
+          "extraTip": "Als je hond bocht mist: niet trekken, laat hem zelf terug inlezen.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         },
         {
-          "title": "Langer spoor met 1 bocht",
-          "goal": "Duur opbouwen met bocht",
-          "track": "12 m + bocht + 10 m",
-          "snacks": "Om de 1-2 stappen",
-          "trackAge": "5 min",
-          "materials": ["Standaardset", "Nog niet te snel afbouwen met snoep"]
+          "title": "Training 3B",
+          "goal": "Langere focus met 1 bocht.",
+          "spoor": "12 m + bocht + 10 m. Snoepjes om de 1-2 stappen. Spoorleeftijd: 5 min.",
+          "benodigdheden": ["Standaardset", "Minder snoepjes, maar niet te snel afbouwen"],
+          "extraTip": "Na de bocht altijd een makkelijke zone maken (dicht belonen).",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         },
         {
-          "title": "Eerste lichte lege stukjes",
-          "goal": "Meer op geur, minder op voer",
-          "track": "15 m + bocht + 10 m",
-          "snacks": "Om de 2 stappen, bocht dichter",
-          "trackAge": "5 min",
-          "materials": ["Standaardset", "Jackpot op einde"]
+          "title": "Training 3C",
+          "goal": "Eerste kleine lege stukjes leren overbruggen.",
+          "spoor": "15 m + bocht + 10 m. Snoepjes om de 2 stappen. In bocht opnieuw dichter. Spoorleeftijd: 5 min.",
+          "benodigdheden": ["Standaardset", "Jackpot op einde"],
+          "extraTip": "Als dit moeilijk is: volgende keer terug naar om de 1 stap.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         }
       ]
     },
@@ -118,118 +116,109 @@
       "theme": "2 bochten",
       "sessions": [
         {
-          "title": "Spoorbeeld uitbreiden",
-          "goal": "2 bochten netjes lopen",
-          "track": "10 m + bocht + 10 m + bocht + 8 m",
-          "snacks": "Om de 1-2 stappen",
-          "trackAge": "5-7 min",
-          "materials": ["Standaardset", "Lijn van 5 m handig"]
+          "title": "Training 4A",
+          "goal": "Spoorbeeld uitbreiden naar meerdere richtingen.",
+          "spoor": "10 m + bocht + 10 m + bocht + 8 m. Snoepjes om de 1-2 stappen. Spoorleeftijd: 5-7 min.",
+          "benodigdheden": ["Standaardset", "Lange lijn van 5 m is handig"],
+          "extraTip": "Hou je lijn los maar aanwezig (geen constante spanning).",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         },
         {
-          "title": "Minder voer in rechte stukken",
-          "goal": "Zelfstandigheid verhogen",
-          "track": "30-35 m totaal, 2 bochten",
-          "snacks": "Om de 2-3 stappen, bochten rijk",
-          "trackAge": "7-10 min",
-          "materials": ["Standaardset", "Extra rustige omgeving"]
+          "title": "Training 4B",
+          "goal": "Minder voer in rechte stukken, bochten blijven duidelijk.",
+          "spoor": "Totaal 30-35 m, 2 bochten. Snoepjes om de 2-3 stappen. Bochten rijk belonen. Spoorleeftijd: 7-10 min.",
+          "benodigdheden": ["Standaardset", "Rustige locatie zonder andere honden"],
+          "extraTip": "Bochten zijn je checkpoint zones, daar mag het makkelijk zijn.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         },
         {
-          "title": "Zelfvertrouwen-run",
-          "goal": "Consolidatie met makkelijkere sessie",
-          "track": "20-25 m, 1 bocht",
-          "snacks": "Om de 1-2 stappen",
-          "trackAge": "3-5 min",
-          "materials": ["Standaardset", "Beste snoepjes"]
+          "title": "Training 4C",
+          "goal": "Confidence session (iets eenvoudiger).",
+          "spoor": "20-25 m, 1 bocht. Snoepjes om de 1-2 stappen. Spoorleeftijd: 3-5 min.",
+          "benodigdheden": ["Standaardset", "Beste snoepjes"],
+          "extraTip": "Een makkelijke sessie is geen stap achteruit.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         }
       ]
     },
     {
       "weekNumber": 5,
-      "theme": "Oudere sporen + stabieler werken",
+      "theme": "Oudere sporen",
       "sessions": [
         {
-          "title": "Spoor laten rijpen",
-          "goal": "Werken op ouder spoor",
-          "track": "25-30 m, 2 bochten",
-          "snacks": "Om de 2 stappen",
-          "trackAge": "10 min",
-          "materials": ["Standaardset", "Timer"]
+          "title": "Training 5A",
+          "goal": "Leren werken op een spoor dat wat ouder is.",
+          "spoor": "25-30 m, 2 bochten. Snoepjes om de 2 stappen. Spoorleeftijd: 10 min.",
+          "benodigdheden": ["Standaardset", "Timer op je gsm"],
+          "extraTip": "Tijdens wachten: hond uit zicht houden."
         },
         {
-          "title": "Langere focus",
-          "goal": "Concentratie over langere afstand",
-          "track": "35-40 m, 2 bochten",
-          "snacks": "Om de 2-3 stappen",
-          "trackAge": "10-12 min",
-          "materials": ["Standaardset", "Lijn 5-10 m"]
+          "title": "Training 5B",
+          "goal": "Langere focus + iets ouder spoor.",
+          "spoor": "35-40 m, 2 bochten. Snoepjes om de 2-3 stappen. Spoorleeftijd: 10-12 min.",
+          "benodigdheden": ["Standaardset", "Liefst 5-10 m lijn"],
+          "extraTip": "Als tempo stijgt: vertraag zelf."
         },
         {
-          "title": "Eindvoorwerp introduceren (optioneel)",
-          "goal": "Object op eindpunt leren uitwerken",
-          "track": "25 m, 1-2 bochten",
-          "snacks": "Om de 2 stappen",
-          "trackAge": "5-8 min",
-          "materials": ["Standaardset", "Klein eindvoorwerp (handschoen/sokje)"]
+          "title": "Training 5C",
+          "goal": "Eindvoorwerp koppelen aan succes (optioneel).",
+          "spoor": "25 m, 1-2 bochten. Snoepjes om de 2 stappen. Op het einde klein voorwerp + jackpot. Spoorleeftijd: 5-8 min.",
+          "benodigdheden": ["Standaardset", "Klein eindvoorwerp (sokje, handschoen)"],
+          "extraTip": "Voorwerp is een extra ritueel/anker, geen moetje."
         }
       ]
     },
     {
       "weekNumber": 6,
-      "theme": "Minder snoepjes, meer spoor",
+      "theme": "Minder snoepjes, meer echt spoorwerk",
       "sessions": [
         {
-          "title": "Meer geur, minder voer",
-          "goal": "Voedselafhankelijkheid afbouwen",
-          "track": "40 m, 2 bochten",
-          "snacks": "Om de 3 stappen, bochten dichter",
-          "trackAge": "10-15 min",
-          "materials": ["Standaardset", "Strakke lijntechniek (niet sturen)"]
+          "title": "Training 6A",
+          "goal": "Meer op geur werken, minder op voer.",
+          "spoor": "40 m, 2 bochten. Snoepjes om de 3 stappen. Bochten dichter. Spoorleeftijd: 10-15 min.",
+          "benodigdheden": ["Standaardset", "Genoeg lijn zodat je niet moet sturen"],
+          "extraTip": "Lijn volgen, niet corrigeren."
         },
         {
-          "title": "Derde bocht toevoegen",
-          "goal": "Complexiteit verhogen",
-          "track": "45-50 m, 3 bochten",
-          "snacks": "Om de 2-3 stappen",
-          "trackAge": "10 min",
-          "materials": ["Standaardset", "Rustige open plek"]
+          "title": "Training 6B",
+          "goal": "3e bocht toevoegen.",
+          "spoor": "45-50 m, 3 bochten. Snoepjes om de 2-3 stappen. Spoorleeftijd: 10 min.",
+          "benodigdheden": ["Standaardset", "Open terrein met genoeg ruimte"],
+          "extraTip": "Bochten nog niet te kort op elkaar zetten."
         },
         {
-          "title": "Confidence run",
-          "goal": "Mentaal opladen met makkelijke herhaling",
-          "track": "25-30 m, 1 bocht",
-          "snacks": "Om de 1-2 stappen",
-          "trackAge": "5 min",
-          "materials": ["Standaardset", "Grotere jackpot"]
+          "title": "Training 6C",
+          "goal": "Herstel/zelfvertrouwen sessie.",
+          "spoor": "25-30 m, 1 bocht. Snoepjes om de 1-2 stappen. Spoorleeftijd: 5 min.",
+          "benodigdheden": ["Standaardset", "Grote jackpot"],
+          "extraTip": "Deze sessie moet vlot voelen."
         }
       ]
     },
     {
       "weekNumber": 7,
-      "theme": "Moeilijker zonder forceren",
+      "theme": "Moeilijker zonder te forceren",
       "sessions": [
         {
-          "title": "Ouder spoor + minder snoep",
-          "goal": "Rustig zelfstandig uitwerken",
-          "track": "40-50 m, 2 bochten",
-          "snacks": "Om de 3-4 stappen",
-          "trackAge": "15-20 min",
-          "materials": ["Standaardset", "Timer", "Geduld"]
+          "title": "Training 7A",
+          "goal": "Ouder spoor + minder snoepjes.",
+          "spoor": "40-50 m, 2 bochten. Snoepjes om de 3-4 stappen. Spoorleeftijd: 15-20 min.",
+          "benodigdheden": ["Standaardset", "Timer", "Geduld"],
+          "extraTip": "Trager werktempo is meestal net goed."
         },
         {
-          "title": "Korte lege zone",
-          "goal": "Lege stukken leren dragen",
-          "track": "35-40 m, 2 bochten",
-          "snacks": "Normaal om de 2-3 stappen, 1 stuk van 5-6 stappen zonder snoep",
-          "trackAge": "10-15 min",
-          "materials": ["Standaardset", "Goede jackpot op einde"]
+          "title": "Training 7B",
+          "goal": "Korte lege zone leren oplossen.",
+          "spoor": "35-40 m, 2 bochten. Normaal snoep om de 2-3 stappen, een zone van 5-6 stappen zonder snoep. Spoorleeftijd: 10-15 min.",
+          "benodigdheden": ["Standaardset", "Jackpot op einde extra interessant"],
+          "extraTip": "Zet lege zone niet vlak na een bocht."
         },
         {
-          "title": "Makkelijke herhaling",
-          "goal": "Consolidatie met lagere druk",
-          "track": "30 m, 1-2 bochten",
-          "snacks": "Om de 2 stappen",
-          "trackAge": "5-8 min",
-          "materials": ["Standaardset"]
+          "title": "Training 7C",
+          "goal": "Rustige, makkelijke herhaling.",
+          "spoor": "30 m, 1-2 bochten. Snoepjes om de 2 stappen. Spoorleeftijd: 5-8 min.",
+          "benodigdheden": ["Standaardset"],
+          "extraTip": "Gebruik dit als mentale reset als week 7 pittig was."
         }
       ]
     },
@@ -238,28 +227,25 @@
       "theme": "Consolideren + mini-test",
       "sessions": [
         {
-          "title": "Examenvorm maar eerlijk",
-          "goal": "Eindniveau simuleren zonder druk",
-          "track": "50-60 m, 2-3 bochten",
-          "snacks": "Om de 3-4 stappen, bochten dichter",
-          "trackAge": "20 min",
-          "materials": ["Standaardset", "Timer", "Rustige mindset"]
+          "title": "Training 8A",
+          "goal": "Examenvorm (maar haalbaar houden).",
+          "spoor": "50-60 m, 2-3 bochten. Snoepjes om de 3-4 stappen. Bochten dichter belonen. Spoorleeftijd: 20 min.",
+          "benodigdheden": ["Standaardset", "Timer", "Rustige locatie"],
+          "extraTip": "Geen perfectie eisen, rustig correct spoorwerk is winst."
         },
         {
-          "title": "Mini-test op andere locatie",
-          "goal": "Generalisatie",
-          "track": "40-50 m, 2 bochten",
-          "snacks": "Om de 3 stappen",
-          "trackAge": "15 min",
-          "materials": ["Standaardset", "Andere grasstrook of parkhoek"]
+          "title": "Training 8B",
+          "goal": "Zelfde niveau, andere locatie (generaliseren).",
+          "spoor": "40-50 m, 2 bochten. Snoepjes om de 3 stappen. Spoorleeftijd: 15 min.",
+          "benodigdheden": ["Standaardset", "Andere grasstrook of parkhoek"],
+          "extraTip": "Nieuwe locatie is automatisch moeilijker."
         },
         {
-          "title": "Afsluiten met succes",
-          "goal": "Positieve afsluiter",
-          "track": "20-30 m, 1 bocht",
-          "snacks": "Om de 1-2 stappen",
-          "trackAge": "3-5 min",
-          "materials": ["Standaardset", "Extra leuke jackpot", "Kort spelletje nadien"]
+          "title": "Training 8C",
+          "goal": "Afsluiten met succes en motivatie hoog houden.",
+          "spoor": "20-30 m, 1 bocht. Snoepjes om de 1-2 stappen. Spoorleeftijd: 3-5 min.",
+          "benodigdheden": ["Standaardset", "Grote jackpot", "Kort spelmoment achteraf"],
+          "extraTip": "Eindig liever te vroeg dan te laat."
         }
       ]
     }

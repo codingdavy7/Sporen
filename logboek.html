@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Logboek - Teckel Search</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-page="logboek">
+    <header class="topbar">
+      <div class="topbar-row">
+        <div class="topbar-left">
+          <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false">☰</button>
+          <h1>Teckel Search</h1>
+        </div>
+        <a class="settings-link" href="./profile.html?return=logboek">🦴 instellingen</a>
+      </div>
+      <nav class="menu-drawer hidden">
+        <a class="nav-link" href="./dashboard.html">Homepagina</a>
+        <a class="nav-link" href="./trainingen.html">Weekdetail</a>
+        <a class="nav-link active" href="./logboek.html">Logboek</a>
+        <button class="nav-link menu-howdan" type="button">hoe_dan?</button>
+      </nav>
+    </header>
+
+    <main class="page">
+      <section class="card">
+        <h2>Filters</h2>
+        <div class="inline-fields">
+          <select id="filter-week"><option value="">Alle weken</option></select>
+          <select id="filter-surface"><option value="">Alle ondergronden</option></select>
+          <input id="filter-success" type="number" min="0" max="10" placeholder="Min. succes (0-10)" />
+          <button id="apply-filters" class="button" type="button">Filter</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Log entries</h2>
+        <div id="log-list" class="log-list"></div>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

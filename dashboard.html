@@ -3,36 +3,53 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard - Teckel Sporen Coach</title>
+    <title>Programma-overzicht - Teckel Search</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body data-page="dashboard">
     <header class="topbar">
-      <h1>Teckel Sporen Coach</h1>
-      <nav class="nav">
-        <a class="nav-link" href="./profile.html">Profiel</a>
-        <a class="nav-link active" href="./dashboard.html">Dashboard</a>
-        <a class="nav-link" href="./trainingen.html">Trainingen</a>
+      <div class="topbar-row">
+        <div class="topbar-left">
+          <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false">☰</button>
+          <h1>Teckel Search</h1>
+        </div>
+        <a class="settings-link" href="./profile.html?return=dashboard">🦴 instellingen</a>
+      </div>
+      <nav class="menu-drawer hidden">
+        <a class="nav-link active" href="./dashboard.html">Homepagina</a>
+        <a class="nav-link" href="./trainingen.html">Weekdetail</a>
+        <a class="nav-link" href="./logboek.html">Logboek</a>
+        <button class="nav-link menu-howdan" type="button">hoe_dan?</button>
       </nav>
     </header>
 
     <main class="page">
-      <section class="card">
-        <p class="eyebrow">Dashboard</p>
-        <h2 id="dog-greeting">Welkom</h2>
-        <p id="upcoming-session" class="upcoming">Volgende sessie: -</p>
-        <p id="unlock-status" class="muted">Week 1-2 zijn direct beschikbaar.</p>
+      <section class="card hero-card">
+        <p class="eyebrow">Home</p>
+        <div class="hero-grid">
+          <div>
+            <h2 id="dog-greeting">Welkom</h2>
+            <p id="upcoming-session" class="upcoming">Volgende sessie: -</p>
+            <p id="next-session-date" class="muted">Gepland op -</p>
+            <p id="next-session-info" class="muted">-</p>
+            <a id="start-now-link" class="button-link" href="./trainingen.html">Start nu</a>
+          </div>
+          <div class="dog-profile-compact">
+            <img id="dashboard-photo" class="photo-preview" alt="Hond profielfoto" />
+            <div>
+              <p class="muted small-m">Teckel profiel</p>
+              <p id="dashboard-dog-name" class="dog-name-chip">Nog geen naam</p>
+              <p class="muted small-m">Pawrent: <span id="dashboard-pawrent-name">-</span></p>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section class="card">
-        <h3>Progressie (8 sterren)</h3>
-        <p class="muted">Algemene regel: elke 3 afgewerkte trainingen = 1 ster.</p>
-        <div id="stars" class="stars" aria-label="Sterrenprogressie"></div>
-        <div class="progress-track" aria-hidden="true">
-          <div id="progress-fill" class="progress-fill"></div>
-        </div>
-        <p id="star-meta" class="star-meta"></p>
-        <p id="completed-meta" class="muted"></p>
+        <h3>Voortgang</h3>
+        <p class="muted">1 botje per training. Gekleurd = afgewerkt.</p>
+        <div id="bone-track" class="bone-track" aria-label="Trainingsprogressie"></div>
+        <p id="bone-meta" class="star-meta"></p>
       </section>
     </main>
 
