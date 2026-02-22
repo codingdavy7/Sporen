@@ -422,6 +422,7 @@ function initTrainingenPage() {
 
     calendar.innerHTML = DAYS.map((day) => {
       const dayDate = resolveSessionDate(week.number, day);
+      const realDay = DAYS[(dayDate.getDay() + 6) % 7];
       const sessions = week.calendar[day]
         .map((sessionId) => {
           const s = state.planner.sessionsById[sessionId];
@@ -437,7 +438,7 @@ function initTrainingenPage() {
         })
         .join("");
 
-      return `<section class="day-col"><h4>${day} ${dayDate.getDate()}</h4>${sessions || "<p class='muted'>Rust</p>"}</section>`;
+      return `<section class="day-col"><h4>${realDay} ${dayDate.getDate()}</h4>${sessions || "<p class='muted'>Rust</p>"}</section>`;
     }).join("");
 
     backlogList.innerHTML = week.backlog.length
@@ -453,7 +454,10 @@ function initTrainingenPage() {
     persist();
   };
 
-  weekSelect.addEventListener("change", renderWeek);
+  weekSelect.addEventListener("change", () => {
+    monthCursor = null;
+    renderWeek();
+  });
 
   backlogList.addEventListener("click", (event) => {
     const replanButton = event.target.closest("button[data-replan]");
