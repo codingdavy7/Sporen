@@ -14,28 +14,40 @@
   "weeks": [
     {
       "weekNumber": 1,
-      "theme": "Basis snappen (rechte lijn, veel snoepjes)",
+      "theme": "Kennismaking (korte rechte lijn, veel snoepjes)",
       "sessions": [
+        {
+          "title": "Training 0",
+          "intro": "Bedenk een passend spoorcommando die je altijd gebruikt om de oefening te starten.",
+          "goal": "Hond bekend maken met het concept sporen. Neus laag houden en rustig zoeken.",
+          "spoor": "Rechte lijn, 3-5 meter. Elke stap een snoepje. Spoorleeftijd: 0-1 min (bijna direct).",
+          "benodigdheden": ["Standaardset", "Extra veel kleine snoepjes (20-30)", "Grote jackpot op het einde"],
+          "extraTip": "Kies een rustige grasstrook zonder afleiding. Maak van het spoor een snacklijn in plaats van perfecte voetstappen: heel korte rechte lijn, veel kleine snoepjes op de route, hond leert eerst het concept. Perfecte spoorprecisie komt later.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
+        },
         {
           "title": "Training 1A",
           "goal": "Hond leert: op jouw spoor liggen snoepjes. Neus laag houden en rustig zoeken.",
           "spoor": "Rechte lijn, 5-8 meter. Elke stap een snoepje. Spoorleeftijd: 0-1 min.",
           "benodigdheden": ["Standaardset", "Extra veel kleine snoepjes (20-30)", "Grote jackpot op het einde"],
-          "extraTip": "Kies een rustige grasstrook zonder afleiding. Eerste sessie = puur succes."
+          "extraTip": "Kies een rustige grasstrook zonder afleiding. Eerste sessie = puur succes. Maak van het spoor een snacklijn in plaats van perfecte voetstappen: heel korte rechte lijn, veel kleine snoepjes op de route, hond leert eerst het concept. Perfecte spoorprecisie komt later.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         },
         {
           "title": "Training 1B",
           "goal": "Zelfde principe bevestigen, iets langer spoor.",
           "spoor": "Rechte lijn, 8-10 meter. Elke stap een snoepje. Spoorleeftijd: 1-2 min.",
           "benodigdheden": ["Standaardset", "Zelfde type snoepjes als 1A (consistentie helpt)"],
-          "extraTip": "Werk traag en stil. Hoe minder je coacht, hoe sneller je hond het zelf snapt."
+          "extraTip": "Werk traag en stil. Hoe minder je coacht, hoe sneller je hond het zelf snapt. Praktisch: stap -> snoepje laten vallen naast/voor je voet op de spoorlijn -> volgende stap. Dus niet proberen mikken in de afdruk, gewoon op de lijn waar jij loopt.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         },
         {
           "title": "Training 1C",
           "goal": "Startpunt leren herkennen en spoor tot het einde volgen.",
           "spoor": "Rechte lijn, 10 meter. Elke stap een snoepje. Jackpot op het einde. Spoorleeftijd: 2-3 min.",
           "benodigdheden": ["Standaardset", "Duidelijke startmarkering"],
-          "extraTip": "Laat je hond rustig starten."
+          "extraTip": "Laat je hond rustig starten. Praktisch: stap -> snoepje laten vallen naast/voor je voet op de spoorlijn -> volgende stap. Dus niet proberen mikken in de afdruk, gewoon op de lijn waar jij loopt.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         }
       ]
     },
@@ -48,21 +60,24 @@
           "goal": "Focus iets langer volhouden.",
           "spoor": "Rechte lijn, 12 meter. Elke stap een snoepje. Spoorleeftijd: 3-5 min.",
           "benodigdheden": ["Standaardset", "25-35 snoepjes"],
-          "extraTip": "Kom altijd terug naar de start naast je spoor, niet erover."
+          "extraTip": "Kom altijd terug naar de start naast je spoor, niet erover.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         },
         {
           "title": "Training 2B",
           "goal": "Nog iets langer spoor, motivatie hoog houden.",
           "spoor": "Rechte lijn, 15 meter. Elke stap een snoepje. Laatste 3 stappen + einde extra rijk. Spoorleeftijd: 3-5 min.",
           "benodigdheden": ["Standaardset", "Sterke jackpot (favoriete snack)"],
-          "extraTip": "Maak je passen niet te groot, dan blijft het spoor leesbaar."
+          "extraTip": "Maak je passen niet te groot, dan blijft het spoor leesbaar.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         },
         {
           "title": "Training 2C",
           "goal": "Eerste bochtgevoel introduceren (nog zacht).",
           "spoor": "10 m recht + zachte bocht + 5 m. Elke stap een snoepje. Rond de bocht extra snoepjes. Spoorleeftijd: 2-3 min.",
           "benodigdheden": ["Standaardset", "Extra snoepjes voor bochtzone"],
-          "extraTip": "Bocht nog breed maken (geen scherpe hoek forceren)."
+          "extraTip": "Bocht nog breed maken (geen scherpe hoek forceren).",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         }
       ]
     },
@@ -75,21 +90,24 @@
           "goal": "1 duidelijke bocht leren nemen.",
           "spoor": "10 m + 90 graden bocht + 8 m. Elke stap snoep, bocht + 2 stappen erna extra dicht. Spoorleeftijd: 3-5 min.",
           "benodigdheden": ["Standaardset", "Eventueel 2 markeerpuntjes (start/eind, enkel voor jou)"],
-          "extraTip": "Als je hond bocht mist: niet trekken, laat hem zelf terug inlezen."
+          "extraTip": "Als je hond bocht mist: niet trekken, laat hem zelf terug inlezen.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         },
         {
           "title": "Training 3B",
           "goal": "Langere focus met 1 bocht.",
           "spoor": "12 m + bocht + 10 m. Snoepjes om de 1-2 stappen. Spoorleeftijd: 5 min.",
           "benodigdheden": ["Standaardset", "Minder snoepjes, maar niet te snel afbouwen"],
-          "extraTip": "Na de bocht altijd een makkelijke zone maken (dicht belonen)."
+          "extraTip": "Na de bocht altijd een makkelijke zone maken (dicht belonen).",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         },
         {
           "title": "Training 3C",
           "goal": "Eerste kleine lege stukjes leren overbruggen.",
           "spoor": "15 m + bocht + 10 m. Snoepjes om de 2 stappen. In bocht opnieuw dichter. Spoorleeftijd: 5 min.",
           "benodigdheden": ["Standaardset", "Jackpot op einde"],
-          "extraTip": "Als dit moeilijk is: volgende keer terug naar om de 1 stap."
+          "extraTip": "Als dit moeilijk is: volgende keer terug naar om de 1 stap.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         }
       ]
     },
@@ -102,21 +120,24 @@
           "goal": "Spoorbeeld uitbreiden naar meerdere richtingen.",
           "spoor": "10 m + bocht + 10 m + bocht + 8 m. Snoepjes om de 1-2 stappen. Spoorleeftijd: 5-7 min.",
           "benodigdheden": ["Standaardset", "Lange lijn van 5 m is handig"],
-          "extraTip": "Hou je lijn los maar aanwezig (geen constante spanning)."
+          "extraTip": "Hou je lijn los maar aanwezig (geen constante spanning).",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         },
         {
           "title": "Training 4B",
           "goal": "Minder voer in rechte stukken, bochten blijven duidelijk.",
           "spoor": "Totaal 30-35 m, 2 bochten. Snoepjes om de 2-3 stappen. Bochten rijk belonen. Spoorleeftijd: 7-10 min.",
           "benodigdheden": ["Standaardset", "Rustige locatie zonder andere honden"],
-          "extraTip": "Bochten zijn je checkpoint zones, daar mag het makkelijk zijn."
+          "extraTip": "Bochten zijn je checkpoint zones, daar mag het makkelijk zijn.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         },
         {
           "title": "Training 4C",
           "goal": "Confidence session (iets eenvoudiger).",
           "spoor": "20-25 m, 1 bocht. Snoepjes om de 1-2 stappen. Spoorleeftijd: 3-5 min.",
           "benodigdheden": ["Standaardset", "Beste snoepjes"],
-          "extraTip": "Een makkelijke sessie is geen stap achteruit."
+          "extraTip": "Een makkelijke sessie is geen stap achteruit.",
+          "valkuil": "Geen micro management en het snoep aanwijzen."
         }
       ]
     },

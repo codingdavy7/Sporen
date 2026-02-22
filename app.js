@@ -125,6 +125,10 @@ function migrateLegacyIfNeeded(saved) {
 }
 
 function syncPlannerWithPlan() {
+  if (plannerNeedsRebuild()) {
+    state.planner = rebuildPlannerPreservingProgress();
+  }
+
   const byWeek = new Map((state.plan.weeks || []).map((week) => [week.weekNumber, week]));
   for (const [sessionId, session] of Object.entries(state.planner.sessionsById)) {
     const m = sessionId.match(/^w(\d+)-s(\d+)$/i);
@@ -136,12 +140,14 @@ function syncPlannerWithPlan() {
     if (!planSession) continue;
 
     session.title = planSession.title;
-    session.trainingCode = `${weekNumber}${["A", "B", "C"][sessionNumber - 1] || String(sessionNumber)}`;
+    session.trainingCode = deriveTrainingCode(weekNumber, planSession.title, sessionNumber - 1);
     session.details = {
+      intro: planSession.intro || "",
       goal: planSession.goal || "",
       spoor: planSession.spoor || "",
       benodigdheden: Array.isArray(planSession.benodigdheden) ? planSession.benodigdheden : [],
       extraTip: planSession.extraTip || "",
+      valkuil: planSession.valkuil || "",
     };
     session.track = session.track || {};
     session.track.lengthM = estimateLengthFromText(planSession.spoor);
@@ -163,6 +169,61 @@ function syncPlannerWithPlan() {
     state.preferences.trainingDays = days;
   }
   persist();
+}
+
+function plannerNeedsRebuild() {
+  for (const week of state.plan.weeks || []) {
+    const weekId = `w${week.weekNumber}`;
+    const plannerWeek = state.planner.weeksById[weekId];
+    if (!plannerWeek) return true;
+    if ((plannerWeek.sessions || []).length !== (week.sessions || []).length) return true;
+  }
+  return false;
+}
+
+function rebuildPlannerPreservingProgress() {
+  const oldPlanner = state.planner;
+  const rebuilt = createPlannerState(state.plan, state.preferences);
+  const oldToNew = new Map();
+
+  for (const week of state.plan.weeks || []) {
+    const weekId = `w${week.weekNumber}`;
+    const oldWeek = oldPlanner.weeksById[weekId];
+    const newWeek = rebuilt.weeksById[weekId];
+    if (!oldWeek || !newWeek) continue;
+
+    for (const oldSessionId of oldWeek.sessions || []) {
+      const oldSession = oldPlanner.sessionsById[oldSessionId];
+      if (!oldSession) continue;
+      const newMatch = (newWeek.sessions || []).find((id) => rebuilt.sessionsById[id]?.title === oldSession.title);
+      if (newMatch) oldToNew.set(oldSessionId, newMatch);
+    }
+  }
+
+  const completed = [];
+  for (const oldId of oldPlanner.program.progress.sessionsCompleted || []) {
+    const mapped = oldToNew.get(oldId);
+    if (mapped && !completed.includes(mapped)) completed.push(mapped);
+  }
+  rebuilt.program.progress.sessionsCompleted = completed;
+
+  rebuilt.logs = (oldPlanner.logs || [])
+    .map((log) => {
+      const mappedSessionId = oldToNew.get(log.sessionId);
+      if (!mappedSessionId) return null;
+      const mappedSession = rebuilt.sessionsById[mappedSessionId];
+      if (!mappedSession) return null;
+      return {
+        ...log,
+        sessionId: mappedSessionId,
+        weekId: mappedSession.weekId,
+      };
+    })
+    .filter(Boolean);
+
+  rebuilt.program.dogProfile.name = state.preferences.dogName || "";
+  syncCompletedWeekProgressOn(rebuilt);
+  return rebuilt;
 }
 
 function persist() {
@@ -308,7 +369,11 @@ function initDashboardPage() {
 
 function initTrainingenPage() {
   const weekSelect = document.getElementById("week-select");
+  const weekPrev = document.getElementById("week-prev");
+  const weekCurrent = document.getElementById("week-current");
+  const weekNext = document.getElementById("week-next");
   const weekTitle = document.getElementById("week-title");
+  const weekNavLabel = document.getElementById("week-nav-label");
   const weekGoal = document.getElementById("week-goal");
   const calendar = document.getElementById("week-calendar");
   const monthPrev = document.getElementById("month-prev");
@@ -324,6 +389,8 @@ function initTrainingenPage() {
   let monthCursor = null;
 
   const unlockedWeeks = getUnlockedWeeks(completedSessionCount());
+  const nextOpen = getNextOpenSession(unlockedWeeks);
+  const currentWeekNumber = nextOpen ? nextOpen.week : Math.min(unlockedWeeks, Math.max(1, state.planner.program.currentWeek || 1));
   weekSelect.innerHTML = Array.from({ length: unlockedWeeks }, (_, i) => i + 1)
     .map((n) => `<option value="w${n}">Week ${n}</option>`)
     .join("");
@@ -418,6 +485,7 @@ function initTrainingenPage() {
     const week = state.planner.weeksById[weekId];
 
     weekTitle.textContent = `Week ${week.number}`;
+    weekNavLabel.textContent = `Huidig: week ${currentWeekNumber}`;
     weekGoal.textContent = week.title;
 
     calendar.innerHTML = DAYS.map((day) => {
@@ -457,6 +525,30 @@ function initTrainingenPage() {
   weekSelect.addEventListener("change", () => {
     monthCursor = null;
     renderWeek();
+  });
+
+  const setWeekByNumber = (weekNumber) => {
+    if (weekNumber < 1 || weekNumber > unlockedWeeks) return false;
+    weekSelect.value = `w${weekNumber}`;
+    monthCursor = null;
+    renderWeek();
+    return true;
+  };
+
+  weekPrev.addEventListener("click", () => {
+    const current = Number(weekSelect.value.replace("w", ""));
+    setWeekByNumber(current - 1);
+  });
+
+  weekCurrent.addEventListener("click", () => {
+    setWeekByNumber(currentWeekNumber);
+  });
+
+  weekNext.addEventListener("click", () => {
+    const current = Number(weekSelect.value.replace("w", ""));
+    if (!setWeekByNumber(current + 1)) {
+      msg.textContent = "Volgende week is nog niet unlocked.";
+    }
   });
 
   backlogList.addEventListener("click", (event) => {
@@ -701,14 +793,18 @@ function renderSessionDetail(container, sessionId) {
   const week = state.planner.weeksById[s.weekId];
   const details = s.details || {};
   const benodigdheden = Array.isArray(details.benodigdheden) ? details.benodigdheden.join(", ") : "";
+  const introRow = details.intro ? `<p><strong>Intro:</strong> ${escapeHtml(details.intro)}</p>` : "";
+  const valkuilRow = details.valkuil ? `<p><strong>Valkuil:</strong> ${escapeHtml(details.valkuil)}</p>` : "";
 
   container.innerHTML = `
     <h3>Week ${week.number} - ${escapeHtml(week.title)}</h3>
     <p><strong>Training ${escapeHtml(s.trainingCode || `${week.number}${sessionNumberFromId(sessionId)}`)}</strong></p>
+    ${introRow}
     <p><strong>Doel:</strong> ${escapeHtml(details.goal || "-")}</p>
     <p><strong>Spoor:</strong> ${escapeHtml(details.spoor || "-")}</p>
     <p><strong>Benodigdheden:</strong> ${escapeHtml(benodigdheden || "-")}</p>
     <p><strong>Extra tip:</strong> ${escapeHtml(details.extraTip || "-")}</p>
+    ${valkuilRow}
   `;
 }
 
@@ -726,6 +822,12 @@ function sortSessionIds(a, b) {
   const wb = Number(mb[1]);
   if (wa !== wb) return wa - wb;
   return Number(ma[2]) - Number(mb[2]);
+}
+
+function deriveTrainingCode(weekNumber, title, index) {
+  const match = String(title || "").match(/training\s*([0-9]+[A-Z]?)/i);
+  if (match && match[1]) return match[1].toUpperCase();
+  return `${weekNumber}${String(index + 1)}`;
 }
 
 function initGlobalNav() {
@@ -914,6 +1016,14 @@ function getNextOpenSession(unlockedWeeks) {
 function syncCompletedWeekProgress() {
   const completed = new Set(state.planner.program.progress.sessionsCompleted);
   state.planner.program.progress.weeksCompleted = Object.values(state.planner.weeksById)
+    .filter((week) => week.sessions.every((id) => completed.has(id)))
+    .map((week) => week.number)
+    .sort((a, b) => a - b);
+}
+
+function syncCompletedWeekProgressOn(planner) {
+  const completed = new Set(planner.program.progress.sessionsCompleted);
+  planner.program.progress.weeksCompleted = Object.values(planner.weeksById)
     .filter((week) => week.sessions.every((id) => completed.has(id)))
     .map((week) => week.number)
     .sort((a, b) => a - b);

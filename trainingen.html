@@ -26,9 +26,13 @@
     <main class="page">
       <section class="card hero-card">
         <div class="week-head-row">
-          <h2 id="week-title">Week</h2>
-          <select id="week-select"></select>
+          <button id="week-prev" class="button ghost" type="button">Vorige</button>
+          <button id="week-current" class="button ghost" type="button">Huidig</button>
+          <button id="week-next" class="button ghost" type="button">Volgende</button>
         </div>
+        <h2 id="week-title">Week</h2>
+        <p id="week-nav-label" class="muted"></p>
+        <select id="week-select" class="hidden"></select>
         <p id="week-goal" class="muted"></p>
 
         <h3>Kalender (ma-zo)</h3>

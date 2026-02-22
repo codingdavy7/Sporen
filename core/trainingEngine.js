@@ -19,7 +19,7 @@ export function createPlannerState(plan, preferences = {}) {
         id,
         weekId,
         code: `S${index + 1}`,
-        trainingCode: `${week.weekNumber}${["A", "B", "C"][index] || String(index + 1)}`,
+        trainingCode: deriveTrainingCode(week.weekNumber, session.title, index),
         title: session.title,
         difficulty: inferDifficulty(index),
         type: index === 2 ? "recovery" : "track",
@@ -33,10 +33,12 @@ export function createPlannerState(plan, preferences = {}) {
           endReward: "jackpot",
         },
         details: {
+          intro: session.intro || "",
           goal: session.goal || "",
           spoor: session.spoor || "",
           benodigdheden: Array.isArray(session.benodigdheden) ? session.benodigdheden : [],
           extraTip: session.extraTip || "",
+          valkuil: session.valkuil || "",
         },
         status: "planned",
         isLightVersion: false,
@@ -286,6 +288,12 @@ function sanitizeTrainingDays(value) {
   const unique = value.filter((day, idx) => DAYS.includes(day) && value.indexOf(day) === idx);
   if (unique.length !== 3) return ["Di", "Do", "Za"];
   return unique;
+}
+
+function deriveTrainingCode(weekNumber, title, index) {
+  const match = String(title || "").match(/training\s*([0-9]+[A-Z]?)/i);
+  if (match && match[1]) return match[1].toUpperCase();
+  return `${weekNumber}${String(index + 1)}`;
 }
 
 function removeSessionFromWeek(week, sessionId, dayHint = null) {
