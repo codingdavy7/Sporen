@@ -277,9 +277,11 @@ export function applyTrainingDays(planner, trainingDays) {
 function defaultCalendarForWeek(sessionIds, trainingDays) {
   const calendar = { Ma: [], Di: [], Wo: [], Do: [], Vr: [], Za: [], Zo: [] };
   const days = sanitizeTrainingDays(trainingDays);
-  if (sessionIds[0]) calendar[days[0]].push(sessionIds[0]);
-  if (sessionIds[1]) calendar[days[1]].push(sessionIds[1]);
-  if (sessionIds[2]) calendar[days[2]].push(sessionIds[2]);
+  for (let i = 0; i < sessionIds.length; i += 1) {
+    const day = days[i % days.length];
+    if (!day) continue;
+    calendar[day].push(sessionIds[i]);
+  }
   return calendar;
 }
 

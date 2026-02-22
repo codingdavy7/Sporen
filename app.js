@@ -166,6 +166,7 @@ function syncPlannerWithPlan() {
     week.settings.trainingDays = days;
     const planWeek = byWeek.get(week.number);
     if (planWeek) week.title = planWeek.theme;
+    repairWeekCalendar(week);
   }
   if (!Array.isArray(state.preferences.trainingDays) || state.preferences.trainingDays.length !== 3) {
     state.preferences.trainingDays = days;
@@ -774,6 +775,33 @@ function normalizeTrainingDays(value) {
   const unique = value.filter((day, i) => DAYS.includes(day) && value.indexOf(day) === i);
   if (unique.length !== 3) return ["Di", "Do", "Za"];
   return unique;
+}
+
+function repairWeekCalendar(week) {
+  const trainingDays = normalizeTrainingDays(week?.settings?.trainingDays);
+  const allowed = new Set(Array.isArray(week?.sessions) ? week.sessions : []);
+  const nextCalendar = { Ma: [], Di: [], Wo: [], Do: [], Vr: [], Za: [], Zo: [] };
+  const placed = new Set();
+
+  for (const day of DAYS) {
+    const sessions = Array.isArray(week?.calendar?.[day]) ? week.calendar[day] : [];
+    for (const sessionId of sessions) {
+      if (!allowed.has(sessionId) || placed.has(sessionId)) continue;
+      nextCalendar[day].push(sessionId);
+      placed.add(sessionId);
+    }
+  }
+
+  let missingIdx = 0;
+  for (const sessionId of allowed) {
+    if (placed.has(sessionId)) continue;
+    const day = trainingDays[missingIdx % trainingDays.length];
+    nextCalendar[day].push(sessionId);
+    placed.add(sessionId);
+    missingIdx += 1;
+  }
+
+  week.calendar = nextCalendar;
 }
 
 function estimateLengthFromText(text = "") {
