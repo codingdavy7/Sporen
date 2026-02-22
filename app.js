@@ -337,8 +337,15 @@ function initTrainingenPage() {
   setCurrentWeek(state.planner, weekSelect.value);
 
   const parseStartDate = () => {
-    const [y, m, d] = state.preferences.startDate.split("-").map(Number);
+    const safeStart = isIsoDate(state.preferences.startDate) ? state.preferences.startDate : todayISO();
+    const [y, m, d] = safeStart.split("-").map(Number);
     return new Date(y, m - 1, d);
+  };
+
+  const getWeekBaseMonday = () => {
+    const start = parseStartDate();
+    const mondayOffset = (start.getDay() + 6) % 7;
+    return addDays(start, -mondayOffset);
   };
 
   const addDays = (date, days) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
@@ -346,7 +353,7 @@ function initTrainingenPage() {
   const mondayIndex = (date) => (date.getDay() + 6) % 7;
 
   const resolveSessionDate = (weekNumber, dayName) => {
-    const start = parseStartDate();
+    const start = getWeekBaseMonday();
     const offset = (weekNumber - 1) * 7 + DAYS.indexOf(dayName);
     return addDays(start, offset);
   };
@@ -995,7 +1002,9 @@ function getSessionPlannedDate(sessionId) {
   const safeStart = isIsoDate(state.preferences.startDate) ? state.preferences.startDate : todayISO();
   const [y, m, d] = safeStart.split("-").map(Number);
   const start = new Date(y, (m || 1) - 1, d || 1);
+  const mondayOffset = (start.getDay() + 6) % 7;
+  const weekBaseMonday = new Date(start.getFullYear(), start.getMonth(), start.getDate() - mondayOffset);
   const offset = (weekNum - 1) * 7 + DAYS.indexOf(location.day);
-  const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + offset);
+  const date = new Date(weekBaseMonday.getFullYear(), weekBaseMonday.getMonth(), weekBaseMonday.getDate() + offset);
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
