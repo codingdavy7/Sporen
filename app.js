@@ -1,8 +1,8 @@
 import {
   DAYS,
+  applyTrainingDays,
   completeSession,
   createPlannerState,
-  markSessionMissed,
   moveSession,
   replanFromBacklog,
   setCurrentWeek,
@@ -19,6 +19,7 @@ const state = {
     dogName: "",
     pawrent: "",
     startDate: todayISO(),
+    trainingDays: ["Di", "Do", "Za"],
     profilePhoto: "",
   },
 };
@@ -35,6 +36,7 @@ async function init() {
 
   state.planner = isValidPlanner(saved.planner) ? saved.planner : createPlannerState(state.plan, state.preferences);
   migrateLegacyIfNeeded(saved);
+  syncPlannerWithPlan();
 
   if (state.page === "profile") initProfilePage();
   if (state.page === "dashboard") initDashboardPage();
@@ -66,7 +68,7 @@ async function loadPlanSafe() {
 }
 
 function loadStorage() {
-  const fallback = { preferences: { dogName: "", pawrent: "", startDate: todayISO(), profilePhoto: "" }, planner: null, legacy: null };
+  const fallback = { preferences: { dogName: "", pawrent: "", startDate: todayISO(), trainingDays: ["Di", "Do", "Za"], profilePhoto: "" }, planner: null, legacy: null };
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return fallback;
 
@@ -79,6 +81,7 @@ function loadStorage() {
         dogName: typeof preferences.dogName === "string" ? preferences.dogName : "",
         pawrent: typeof preferences.pawrent === "string" ? preferences.pawrent : "",
         startDate: isIsoDate(preferences.startDate) ? preferences.startDate : todayISO(),
+        trainingDays: normalizeTrainingDays(preferences.trainingDays),
         profilePhoto: typeof preferences.profilePhoto === "string" ? preferences.profilePhoto : "",
       },
       planner: parsed.planner && typeof parsed.planner === "object" ? parsed.planner : null,
@@ -121,6 +124,47 @@ function migrateLegacyIfNeeded(saved) {
   persist();
 }
 
+function syncPlannerWithPlan() {
+  const byWeek = new Map((state.plan.weeks || []).map((week) => [week.weekNumber, week]));
+  for (const [sessionId, session] of Object.entries(state.planner.sessionsById)) {
+    const m = sessionId.match(/^w(\d+)-s(\d+)$/i);
+    if (!m) continue;
+    const weekNumber = Number(m[1]);
+    const sessionNumber = Number(m[2]);
+    const planWeek = byWeek.get(weekNumber);
+    const planSession = planWeek?.sessions?.[sessionNumber - 1];
+    if (!planSession) continue;
+
+    session.title = planSession.title;
+    session.trainingCode = `${weekNumber}${["A", "B", "C"][sessionNumber - 1] || String(sessionNumber)}`;
+    session.details = {
+      goal: planSession.goal || "",
+      spoor: planSession.spoor || "",
+      benodigdheden: Array.isArray(planSession.benodigdheden) ? planSession.benodigdheden : [],
+      extraTip: planSession.extraTip || "",
+    };
+    session.track = session.track || {};
+    session.track.lengthM = estimateLengthFromText(planSession.spoor);
+    session.track.turns = estimateTurnsFromText(planSession.spoor);
+    session.track.shape = inferShapeFromText(planSession.spoor);
+    session.track.surface = inferSurfaceFromText(planSession.spoor);
+    session.track.treatPattern = planSession.spoor || "";
+    delete session.adaptive;
+  }
+
+  const days = normalizeTrainingDays(state.preferences.trainingDays);
+  for (const week of Object.values(state.planner.weeksById)) {
+    week.settings = week.settings || {};
+    week.settings.trainingDays = days;
+    const planWeek = byWeek.get(week.number);
+    if (planWeek) week.title = planWeek.theme;
+  }
+  if (!Array.isArray(state.preferences.trainingDays) || state.preferences.trainingDays.length !== 3) {
+    state.preferences.trainingDays = days;
+  }
+  persist();
+}
+
 function persist() {
   try {
     localStorage.setItem(
@@ -143,6 +187,7 @@ function initProfilePage() {
   const nameInput = document.getElementById("dog-name");
   const pawrentInput = document.getElementById("pawrent-name");
   const startInput = document.getElementById("start-date");
+  const trainingDayInputs = Array.from(document.querySelectorAll('input[name="training-days"]'));
   const photoInput = document.getElementById("photo-input");
   const photoPreview = document.getElementById("photo-preview");
   const photoRemove = document.getElementById("photo-remove");
@@ -158,6 +203,10 @@ function initProfilePage() {
   nameInput.value = state.preferences.dogName;
   pawrentInput.value = state.preferences.pawrent || "";
   startInput.value = state.preferences.startDate;
+  const selectedDays = normalizeTrainingDays(state.preferences.trainingDays);
+  trainingDayInputs.forEach((input) => {
+    input.checked = selectedDays.includes(input.value);
+  });
   renderPhoto(photoPreview, state.preferences.profilePhoto);
 
   photoInput.addEventListener("change", async () => {
@@ -184,14 +233,19 @@ function initProfilePage() {
     const name = nameInput.value.trim();
     const pawrent = pawrentInput.value.trim();
     let startDate = startInput.value;
+    const chosenDays = trainingDayInputs.filter((input) => input.checked).map((input) => input.value);
+    const trainingDays = chosenDays.length === 0 ? ["Di", "Do", "Za"] : chosenDays;
 
     if (!name) return (msg.textContent = "Vul een teckelnaam in.");
     if (!isIsoDate(startDate)) startDate = todayISO();
+    if (trainingDays.length !== 3) return (msg.textContent = "Selecteer exact 3 trainingsdagen.");
 
     state.preferences.dogName = name;
     state.preferences.pawrent = pawrent;
     state.preferences.startDate = startDate;
+    state.preferences.trainingDays = trainingDays;
     state.planner.program.dogProfile.name = name;
+    applyTrainingDays(state.planner, trainingDays);
     const saved = persist();
     if (!saved.ok) {
       msg.textContent = saved.message;
@@ -422,6 +476,7 @@ function initSessionPage() {
   const detail = document.getElementById("session-detail");
   const openDatePicker = document.getElementById("open-date-picker");
   const rescheduleDate = document.getElementById("reschedule-date");
+  const applyRescheduleDate = document.getElementById("apply-reschedule-date");
   const resetSessionButton = document.getElementById("reset-session");
   const openEvalForm = document.getElementById("open-eval-form");
   const cancelEval = document.getElementById("cancel-eval");
@@ -471,10 +526,11 @@ function initSessionPage() {
   openDatePicker.addEventListener("click", () => {
     rescheduleDate.value = "";
     rescheduleDate.classList.remove("hidden");
-    rescheduleDate.focus();
+    applyRescheduleDate.classList.remove("hidden");
+    rescheduleDate.showPicker?.();
   });
 
-  rescheduleDate.addEventListener("change", () => {
+  applyRescheduleDate.addEventListener("click", () => {
     if (!rescheduleDate.value) {
       msg.textContent = "Kies eerst een datum.";
       return;
@@ -576,10 +632,49 @@ function findSessionLocation(sessionId) {
 }
 
 function dayNameFromDate(isoDate) {
-  const d = new Date(`${isoDate}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return null;
-  const idx = (d.getDay() + 6) % 7;
+  if (!isIsoDate(isoDate)) return null;
+  const [y, m, d] = isoDate.split("-").map(Number);
+  const parsed = new Date(y, m - 1, d);
+  if (Number.isNaN(parsed.getTime())) return null;
+  const idx = (parsed.getDay() + 6) % 7;
   return DAYS[idx] || null;
+}
+
+function normalizeTrainingDays(value) {
+  if (!Array.isArray(value)) return ["Di", "Do", "Za"];
+  const unique = value.filter((day, i) => DAYS.includes(day) && value.indexOf(day) === i);
+  if (unique.length !== 3) return ["Di", "Do", "Za"];
+  return unique;
+}
+
+function estimateLengthFromText(text = "") {
+  const match = String(text).match(/(\d{1,3})\s*(?:-|tot|–)?\s*(\d{1,3})?\s*m/i);
+  if (!match) return 10;
+  const a = Number(match[1]);
+  const b = Number(match[2] || 0);
+  return b ? Math.round((a + b) / 2) : a;
+}
+
+function estimateTurnsFromText(text = "") {
+  const direct = String(text).match(/(\d+)\s*bocht/i);
+  if (direct) return Number(direct[1]);
+  return String(text).toLowerCase().includes("bocht") ? 1 : 0;
+}
+
+function inferShapeFromText(text = "") {
+  const lower = String(text).toLowerCase();
+  if (lower.includes("l-vorm") || lower.includes("90")) return "L";
+  return "line";
+}
+
+function inferSurfaceFromText(text = "") {
+  const lower = String(text).toLowerCase();
+  if (lower.includes("bos")) return "bos";
+  if (lower.includes("zand")) return "zand";
+  if (lower.includes("mix")) return "mix";
+  if (lower.includes("asfalt")) return "asfalt";
+  if (lower.includes("grind")) return "grind";
+  return "gras";
 }
 
 function renderSessionDetail(container, sessionId) {
@@ -592,17 +687,70 @@ function renderSessionDetail(container, sessionId) {
     container.innerHTML = "Sessie niet gevonden.";
     return;
   }
+  const week = state.planner.weeksById[s.weekId];
+  const details = s.details || {};
+  const benodigdheden = Array.isArray(details.benodigdheden) ? details.benodigdheden.join(", ") : "";
 
   container.innerHTML = `
-    <h3>${s.code} · ${escapeHtml(s.title)}</h3>
-    <p><strong>Spooropbouw:</strong> ${s.track.lengthM}m · ${s.track.turns} bocht(en) · ${escapeHtml(s.track.surface)}</p>
-    <p><strong>Snoepjes:</strong> ${escapeHtml(s.track.treatPattern)}</p>
-    <p><strong>Uitvoering:</strong> rustig starten, neus omlaag, lijn los volgen.</p>
-    <p><strong>Adaptief makkelijker:</strong> ${s.adaptive.easier.lengthM}m, ${s.adaptive.easier.turns} bochten (${escapeHtml(s.adaptive.easier.note)})</p>
-    <p><strong>Adaptief korter:</strong> ${s.adaptive.shorter.durationMin} min, ${s.adaptive.shorter.lengthM}m (${escapeHtml(s.adaptive.shorter.note)})</p>
+    <h3>Week ${week.number} - ${escapeHtml(week.title)}</h3>
+    <p><strong>Training ${escapeHtml(s.trainingCode || `${week.number}${sessionNumberFromId(sessionId)}`)}</strong></p>
+    <p><strong>Doel:</strong> ${escapeHtml(details.goal || "-")}</p>
+    <p><strong>Spoor:</strong> ${escapeHtml(details.spoor || "-")}</p>
+    <p><strong>Benodigdheden:</strong> ${escapeHtml(benodigdheden || "-")}</p>
+    <p><strong>Extra tip:</strong> ${escapeHtml(details.extraTip || "-")}</p>
   `;
 }
 
+function formatDateReadable(iso) {
+  if (!isIsoDate(iso)) return "onbekend";
+  const d = new Date(`${iso}T00:00:00`);
+  return d.toLocaleDateString("nl-BE", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+function sortSessionIds(a, b) {
+  const ma = String(a).match(/^w(\d+)-s(\d+)$/i);
+  const mb = String(b).match(/^w(\d+)-s(\d+)$/i);
+  if (!ma || !mb) return String(a).localeCompare(String(b));
+  const wa = Number(ma[1]);
+  const wb = Number(mb[1]);
+  if (wa !== wb) return wa - wb;
+  return Number(ma[2]) - Number(mb[2]);
+}
+
+function initGlobalNav() {
+  const button = document.querySelector(".menu-toggle");
+  const drawer = document.querySelector(".menu-drawer");
+  if (!button || !drawer) return;
+
+  const isExpanded = () => button.getAttribute("aria-expanded") === "true";
+  const close = () => {
+    button.setAttribute("aria-expanded", "false");
+    drawer.classList.add("hidden");
+  };
+  const open = () => {
+    button.setAttribute("aria-expanded", "true");
+    drawer.classList.remove("hidden");
+  };
+
+  button.addEventListener("click", () => {
+    if (isExpanded()) close();
+    else open();
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!drawer.contains(event.target) && !button.contains(event.target)) {
+      close();
+    }
+  });
+
+  drawer.addEventListener("click", (event) => {
+    const howDan = event.target.closest(".menu-howdan");
+    if (!howDan) return;
+    event.preventDefault();
+    close();
+    window.alert("Work in progress: deze sectie wordt nog uitgewerkt.");
+  });
+}
 function initLogboekPage() {
   const filterWeek = document.getElementById("filter-week");
   const filterSurface = document.getElementById("filter-surface");
@@ -850,55 +998,4 @@ function getSessionPlannedDate(sessionId) {
   const offset = (weekNum - 1) * 7 + DAYS.indexOf(location.day);
   const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + offset);
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function formatDateReadable(iso) {
-  if (!isIsoDate(iso)) return "onbekend";
-  const d = new Date(`${iso}T00:00:00`);
-  return d.toLocaleDateString("nl-BE", { day: "2-digit", month: "2-digit", year: "numeric" });
-}
-
-function sortSessionIds(a, b) {
-  const ma = String(a).match(/^w(\d+)-s(\d+)$/i);
-  const mb = String(b).match(/^w(\d+)-s(\d+)$/i);
-  if (!ma || !mb) return String(a).localeCompare(String(b));
-  const wa = Number(ma[1]);
-  const wb = Number(mb[1]);
-  if (wa !== wb) return wa - wb;
-  return Number(ma[2]) - Number(mb[2]);
-}
-
-function initGlobalNav() {
-  const button = document.querySelector(".menu-toggle");
-  const drawer = document.querySelector(".menu-drawer");
-  if (!button || !drawer) return;
-
-  const isExpanded = () => button.getAttribute("aria-expanded") === "true";
-  const close = () => {
-    button.setAttribute("aria-expanded", "false");
-    drawer.classList.add("hidden");
-  };
-  const open = () => {
-    button.setAttribute("aria-expanded", "true");
-    drawer.classList.remove("hidden");
-  };
-
-  button.addEventListener("click", () => {
-    if (isExpanded()) close();
-    else open();
-  });
-
-  document.addEventListener("click", (event) => {
-    if (!drawer.contains(event.target) && !button.contains(event.target)) {
-      close();
-    }
-  });
-
-  drawer.addEventListener("click", (event) => {
-    const howDan = event.target.closest(".menu-howdan");
-    if (!howDan) return;
-    event.preventDefault();
-    close();
-    window.alert("Work in progress: deze sectie wordt nog uitgewerkt.");
-  });
 }

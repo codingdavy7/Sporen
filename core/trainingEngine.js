@@ -3,6 +3,7 @@ export const DAYS = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"];
 const DIFFICULTY_RANK = { easy: 1, medium: 2, hard: 3 };
 
 export function createPlannerState(plan, preferences = {}) {
+  const trainingDays = sanitizeTrainingDays(preferences.trainingDays);
   const weeksById = {};
   const sessionsById = {};
 
@@ -18,30 +19,24 @@ export function createPlannerState(plan, preferences = {}) {
         id,
         weekId,
         code: `S${index + 1}`,
+        trainingCode: `${week.weekNumber}${["A", "B", "C"][index] || String(index + 1)}`,
         title: session.title,
         difficulty: inferDifficulty(index),
         type: index === 2 ? "recovery" : "track",
         durationMin: 15,
         track: {
-          lengthM: estimateLength(session.track),
-          turns: estimateTurns(session.track),
-          shape: inferShape(session.track),
-          surface: inferSurface(session.track),
-          treatPattern: session.snacks,
+          lengthM: estimateLength(session.spoor),
+          turns: estimateTurns(session.spoor),
+          shape: inferShape(session.spoor),
+          surface: inferSurface(session.spoor),
+          treatPattern: session.spoor,
           endReward: "jackpot",
         },
-        adaptive: {
-          easier: {
-            lengthM: Math.max(5, estimateLength(session.track) - 4),
-            turns: Math.max(0, estimateTurns(session.track) - 1),
-            note: "korter spoor",
-          },
-          shorter: {
-            durationMin: 8,
-            lengthM: 5,
-            turns: 0,
-            note: "mini-sessie",
-          },
+        details: {
+          goal: session.goal || "",
+          spoor: session.spoor || "",
+          benodigdheden: Array.isArray(session.benodigdheden) ? session.benodigdheden : [],
+          extraTip: session.extraTip || "",
         },
         status: "planned",
         isLightVersion: false,
@@ -57,9 +52,10 @@ export function createPlannerState(plan, preferences = {}) {
         surface: "gras",
         trackAgingMin: 0,
         trackAgingMax: 10,
+        trainingDays,
       },
       sessions: sessionIds,
-      calendar: defaultCalendarForWeek(sessionIds),
+      calendar: defaultCalendarForWeek(sessionIds, trainingDays),
       backlog: [],
       notes: "",
     };
@@ -199,7 +195,8 @@ export function resetWeek(planner, weekId) {
   const week = planner.weeksById[weekId];
   if (!week) return { ok: false };
 
-  week.calendar = defaultCalendarForWeek(week.sessions);
+  const days = sanitizeTrainingDays(week.settings?.trainingDays);
+  week.calendar = defaultCalendarForWeek(week.sessions, days);
   week.backlog = [];
   week.notes = "";
   week.sessions.forEach((sessionId) => {
@@ -264,12 +261,31 @@ export function setCurrentWeek(planner, weekId) {
   return { ok: true };
 }
 
-function defaultCalendarForWeek(sessionIds) {
+export function applyTrainingDays(planner, trainingDays) {
+  const days = sanitizeTrainingDays(trainingDays);
+  for (const week of Object.values(planner.weeksById)) {
+    week.settings = week.settings || {};
+    week.settings.trainingDays = days;
+    week.calendar = defaultCalendarForWeek(week.sessions, days);
+    week.backlog = [];
+  }
+  return { ok: true, trainingDays: days };
+}
+
+function defaultCalendarForWeek(sessionIds, trainingDays) {
   const calendar = { Ma: [], Di: [], Wo: [], Do: [], Vr: [], Za: [], Zo: [] };
-  if (sessionIds[0]) calendar.Di.push(sessionIds[0]);
-  if (sessionIds[1]) calendar.Do.push(sessionIds[1]);
-  if (sessionIds[2]) calendar.Za.push(sessionIds[2]);
+  const days = sanitizeTrainingDays(trainingDays);
+  if (sessionIds[0]) calendar[days[0]].push(sessionIds[0]);
+  if (sessionIds[1]) calendar[days[1]].push(sessionIds[1]);
+  if (sessionIds[2]) calendar[days[2]].push(sessionIds[2]);
   return calendar;
+}
+
+function sanitizeTrainingDays(value) {
+  if (!Array.isArray(value)) return ["Di", "Do", "Za"];
+  const unique = value.filter((day, idx) => DAYS.includes(day) && value.indexOf(day) === idx);
+  if (unique.length !== 3) return ["Di", "Do", "Za"];
+  return unique;
 }
 
 function removeSessionFromWeek(week, sessionId, dayHint = null) {

@@ -159,6 +159,24 @@ h2, h3 { margin: 0 0 0.55rem; }
 label { font-size: 0.9rem; font-weight: 700; }
 input, button, textarea, select { font: inherit; }
 
+.weekday-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.4rem 0.6rem;
+}
+
+.weekday-grid label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.weekday-grid input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
 input, textarea, select {
   width: 100%;
   border: 1px solid var(--border);
