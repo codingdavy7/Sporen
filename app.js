@@ -439,18 +439,26 @@ function initTrainingenPage() {
 
   const buildScheduledEntries = () => {
     const entries = [];
-    const week = Number(weekSelect.value.replace("w", ""));
-    const weekId = `w${week}`;
-    const weekData = state.planner.weeksById[weekId];
-    if (!weekData) return entries;
-    for (const dayName of DAYS) {
-      for (const sessionId of weekData.calendar[dayName]) {
-        const session = state.planner.sessionsById[sessionId];
-        const date = resolveSessionDate(week, dayName);
-        entries.push({ sessionId, weekId, weekNumber: week, code: session.code, title: session.title, iso: toIso(date) });
+    for (let weekNumber = 1; weekNumber <= unlockedWeeks; weekNumber += 1) {
+      const weekId = `w${weekNumber}`;
+      const weekData = state.planner.weeksById[weekId];
+      if (!weekData) continue;
+      for (const dayName of DAYS) {
+        for (const sessionId of weekData.calendar[dayName]) {
+          const session = state.planner.sessionsById[sessionId];
+          const date = resolveSessionDate(weekNumber, dayName);
+          entries.push({
+            sessionId,
+            weekId,
+            weekNumber,
+            code: session.code,
+            title: session.title,
+            iso: toIso(date),
+          });
+        }
       }
     }
-    return entries.sort((a, b) => a.iso.localeCompare(b.iso));
+    return entries.sort((a, b) => a.iso.localeCompare(b.iso) || a.weekNumber - b.weekNumber);
   };
 
   const renderMonthCalendar = () => {
