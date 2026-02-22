@@ -468,7 +468,8 @@ function initTrainingenPage() {
         .map((entry) => {
           const doneClass = completed.has(entry.sessionId) ? "done" : "";
           const movedClass = entry.sessionId === movedSessionId ? "moved" : "";
-          const label = `Level ${entry.weekNumber}${sessionNumberFromId(entry.sessionId)}`;
+          const s = state.planner.sessionsById[entry.sessionId];
+          const label = `Training ${s?.trainingCode || `${entry.weekNumber}${sessionNumberFromId(entry.sessionId)}`}`;
           return `<a class="month-session ${doneClass} ${movedClass}" href="./session.html?week=${entry.weekId}&session=${entry.sessionId}&return=trainingen">${label}</a>`;
         })
         .join("");
@@ -496,7 +497,7 @@ function initTrainingenPage() {
           const s = state.planner.sessionsById[sessionId];
           const done = state.planner.program.progress.sessionsCompleted.includes(sessionId);
           const movedClass = sessionId === movedSessionId ? "moved" : "";
-          const levelLabel = `Level ${week.number}${sessionNumberFromId(sessionId)}`;
+          const levelLabel = `Training ${s.trainingCode || `${week.number}${sessionNumberFromId(sessionId)}`}`;
           return `
             <a class="session-pill ${done ? "done" : ""} ${movedClass}" href="./session.html?week=${weekId}&session=${sessionId}&return=trainingen">
               <div class="session-head"><strong>${levelLabel}</strong><span class="session-status">${done ? "Gedaan" : "Gepland"}</span></div>
