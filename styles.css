@@ -1,15 +1,15 @@
 :root {
-  --bg: #13100d;
-  --card: #1e1813;
-  --card-alt: #2a2119;
-  --text: #f0dfc5;
-  --muted: #c3a986;
-  --border: #5f4a35;
-  --brand: #d2a46e;
-  --brand-strong: #b88750;
-  --brand-soft: #3a2c20;
-  --ok: #d9b07f;
-  --warn: #f0c985;
+  --bg: #0b0a09;
+  --card: #171310;
+  --card-alt: #231b15;
+  --text: #f3dfbe;
+  --muted: #c8a77d;
+  --border: #735535;
+  --brand: #d7a261;
+  --brand-strong: #bf8448;
+  --brand-soft: #332519;
+  --ok: #ddb27c;
+  --warn: #f1c786;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   --shadow-strong: 0 18px 45px rgba(0, 0, 0, 0.65);
 }
@@ -21,9 +21,9 @@ body {
   font-family: "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
   color: var(--text);
   background:
-    radial-gradient(circle at 90% -5%, #d2a46e55 0%, transparent 32%),
-    radial-gradient(circle at 5% 0%, #9a755055 0%, transparent 28%),
-    radial-gradient(circle at 50% 110%, #b8875033 0%, transparent 32%),
+    radial-gradient(circle at 92% -8%, #d7a26166 0%, transparent 34%),
+    radial-gradient(circle at 5% 0%, #a0724560 0%, transparent 28%),
+    radial-gradient(circle at 50% 110%, #bf844840 0%, transparent 34%),
     var(--bg);
 }
 
