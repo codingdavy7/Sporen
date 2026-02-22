@@ -11,6 +11,8 @@ import {
 const STORAGE_KEY = "teckel_sporen_v1";
 const STORAGE_VERSION = "1.0";
 const TRAININGS_PER_STAR = 3;
+const RICH_TEXT_CACHE_LIMIT = 250;
+const richTextCache = new Map();
 const state = {
   page: document.body.dataset.page || "",
   plan: null,
@@ -192,10 +194,19 @@ function rebuildPlannerPreservingProgress() {
     const newWeek = rebuilt.weeksById[weekId];
     if (!oldWeek || !newWeek) continue;
 
+    const newIdsByKey = new Map();
+    for (const newSessionId of newWeek.sessions || []) {
+      const key = sessionIdentityKey(rebuilt.sessionsById[newSessionId]);
+      if (!newIdsByKey.has(key)) newIdsByKey.set(key, []);
+      newIdsByKey.get(key).push(newSessionId);
+    }
+
     for (const oldSessionId of oldWeek.sessions || []) {
       const oldSession = oldPlanner.sessionsById[oldSessionId];
       if (!oldSession) continue;
-      const newMatch = (newWeek.sessions || []).find((id) => rebuilt.sessionsById[id]?.title === oldSession.title);
+      const key = sessionIdentityKey(oldSession);
+      const candidates = newIdsByKey.get(key) || [];
+      const newMatch = candidates.shift();
       if (newMatch) oldToNew.set(oldSessionId, newMatch);
     }
   }
@@ -347,7 +358,8 @@ function initDashboardPage() {
   const next = getNextOpenSession(unlockedWeeks);
 
   if (next) {
-    upcoming.textContent = `Volgende sessie: Week ${next.week} - S${next.sessionNumber}`;
+    const nextLabel = String(next.trainingCode || "") === "0" ? "Introductie" : `Training ${next.trainingCode || `S${next.sessionNumber}`}`;
+    upcoming.textContent = `Volgende sessie: Week ${next.week} - ${nextLabel}`;
     nextDate.textContent = `Gepland op ${formatDateReadable(next.dateIso)}`;
     nextInfo.textContent = `${next.title} · ${next.lengthM}m · ${next.turns} bocht(en) · ${next.surface}`;
     cta.href = `./session.html?week=w${next.week}&session=${next.id}&return=dashboard`;
@@ -443,6 +455,11 @@ function initTrainingenPage() {
 
   const renderMonthCalendar = () => {
     const entries = buildScheduledEntries();
+    const entriesByIso = new Map();
+    for (const entry of entries) {
+      if (!entriesByIso.has(entry.iso)) entriesByIso.set(entry.iso, []);
+      entriesByIso.get(entry.iso).push(entry);
+    }
     const completed = new Set(state.planner.program.progress.sessionsCompleted);
     const selectedWeekNumber = Number(weekSelect.value.replace("w", ""));
 
@@ -463,7 +480,7 @@ function initTrainingenPage() {
     let cells = "";
     for (let day = 1; day <= daysInMonth; day += 1) {
       const iso = `${monthCursor.getFullYear()}-${String(monthCursor.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-      const dayEntries = entries.filter((entry) => entry.iso === iso);
+      const dayEntries = entriesByIso.get(iso) || [];
       const badges = dayEntries
         .map((entry) => {
           const doneClass = completed.has(entry.sessionId) ? "done" : "";
@@ -482,6 +499,7 @@ function initTrainingenPage() {
 
   const renderWeek = () => {
     const weekId = weekSelect.value;
+    const previousSelectedWeekId = state.planner.ui.selectedWeekId;
     setCurrentWeek(state.planner, weekId);
     const week = state.planner.weeksById[weekId];
 
@@ -520,7 +538,7 @@ function initTrainingenPage() {
       : "<p class='muted'>Geen gemiste sessies.</p>";
 
     renderMonthCalendar();
-    persist();
+    if (previousSelectedWeekId !== weekId) persist();
   };
 
   weekSelect.addEventListener("change", () => {
@@ -589,6 +607,7 @@ function initSessionPage() {
   const logSurface = document.getElementById("log-surface");
   const logWeather = document.getElementById("log-weather");
   const logSuccess = document.getElementById("log-success");
+  const logSuccessValue = document.getElementById("log-success-value");
   const logFocus = document.getElementById("log-focus");
   const obsNose = document.getElementById("obs-nose");
   const obsCalm = document.getElementById("obs-calm");
@@ -626,6 +645,11 @@ function initSessionPage() {
   if (!hasTurn) obsTurn.checked = false;
 
   logDate.value = todayISO();
+  logSuccess.value = "8";
+  logSuccessValue.textContent = "8";
+  logSuccess.addEventListener("input", () => {
+    logSuccessValue.textContent = String(logSuccess.value);
+  });
 
   openDatePicker.addEventListener("click", () => {
     rescheduleDate.value = "";
@@ -705,7 +729,7 @@ function initSessionPage() {
       date: logDate.value,
       surface: logSurface.value,
       weather: logWeather.value,
-      successScore: Number(logSuccess.value || 0),
+      successScore: clamp(Number(logSuccess.value || 0), 0, 10),
       focus: logFocus.value,
       notes: logNotes.value,
       noseDown: obsNose.checked,
@@ -725,14 +749,7 @@ function initSessionPage() {
 }
 
 function findSessionLocation(sessionId) {
-  for (const [weekId, week] of Object.entries(state.planner.weeksById)) {
-    for (const day of DAYS) {
-      if (week.calendar[day].includes(sessionId)) {
-        return { weekId, day };
-      }
-    }
-  }
-  return null;
+  return findSessionLocationInIndex(sessionId, buildSessionLocationIndex());
 }
 
 function dayNameFromDate(isoDate) {
@@ -793,18 +810,21 @@ function renderSessionDetail(container, sessionId) {
   }
   const week = state.planner.weeksById[s.weekId];
   const details = s.details || {};
-  const benodigdheden = Array.isArray(details.benodigdheden) ? details.benodigdheden.join(", ") : "";
-  const introRow = details.intro ? `<p><strong>Intro:</strong> ${escapeHtml(details.intro)}</p>` : "";
-  const valkuilRow = details.valkuil ? `<p><strong>Valkuil:</strong> ${escapeHtml(details.valkuil)}</p>` : "";
+  const benodigdheden = Array.isArray(details.benodigdheden) ? details.benodigdheden : [];
+  const introRow = details.intro ? `<div class="detail-block"><strong>Intro:</strong>${formatRichText(details.intro)}</div>` : "";
+  const valkuilRow = details.valkuil ? `<div class="detail-block"><strong>Valkuil:</strong>${formatRichText(details.valkuil)}</div>` : "";
+  const benodigdhedenHtml = benodigdheden.length
+    ? `<ul class="detail-list">${benodigdheden.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
+    : "<p>-</p>";
 
   container.innerHTML = `
     <h3>Week ${week.number} - ${escapeHtml(week.title)}</h3>
     <p><strong>Training ${escapeHtml(s.trainingCode || `${week.number}${sessionNumberFromId(sessionId)}`)}</strong></p>
     ${introRow}
-    <p><strong>Doel:</strong> ${escapeHtml(details.goal || "-")}</p>
-    <p><strong>Spoor:</strong> ${escapeHtml(details.spoor || "-")}</p>
-    <p><strong>Benodigdheden:</strong> ${escapeHtml(benodigdheden || "-")}</p>
-    <p><strong>Extra tip:</strong> ${escapeHtml(details.extraTip || "-")}</p>
+    <div class="detail-block"><strong>Doel:</strong>${formatRichText(details.goal || "-")}</div>
+    <div class="detail-block"><strong>Spoor:</strong>${formatRichText(details.spoor || "-")}</div>
+    <div class="detail-block"><strong>Benodigdheden:</strong>${benodigdhedenHtml}</div>
+    <div class="detail-block"><strong>Extra tip:</strong>${formatRichText(details.extraTip || "-")}</div>
     ${valkuilRow}
   `;
 }
@@ -826,9 +846,48 @@ function sortSessionIds(a, b) {
 }
 
 function deriveTrainingCode(weekNumber, title, index) {
-  const match = String(title || "").match(/training\s*([0-9]+[A-Z]?)/i);
-  if (match && match[1]) return match[1].toUpperCase();
+  const parsed = parseTrainingCodeFromTitle(title);
+  if (parsed) return parsed;
   return `${weekNumber}${String(index + 1)}`;
+}
+
+function formatRichText(text) {
+  const raw = String(text || "");
+  if (richTextCache.has(raw)) return richTextCache.get(raw);
+  const normalized = raw
+    .replace(/\u2022/g, "\n- ")
+    .replace(/\s*->\s*/g, " -> ");
+  const lines = normalized
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (lines.length === 0) return "<p>-</p>";
+
+  const chunks = [];
+  let bullets = [];
+
+  const flushBullets = () => {
+    if (!bullets.length) return;
+    chunks.push(`<ul class="detail-list">${bullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`);
+    bullets = [];
+  };
+
+  for (const line of lines) {
+    if (line.startsWith("- ")) {
+      bullets.push(line.slice(2));
+      continue;
+    }
+    flushBullets();
+    chunks.push(`<p>${escapeHtml(line)}</p>`);
+  }
+  flushBullets();
+  const rendered = chunks.join("");
+  richTextCache.set(raw, rendered);
+  if (richTextCache.size > RICH_TEXT_CACHE_LIMIT) {
+    const firstKey = richTextCache.keys().next().value;
+    richTextCache.delete(firstKey);
+  }
+  return rendered;
 }
 
 function initGlobalNav() {
@@ -909,7 +968,7 @@ function initLogboekPage() {
                     .map((v) => `<option value="${v}" ${log.weather === v ? "selected" : ""}>${v}</option>`)
                     .join("")}
                 </select>
-                <input data-edit-field="successScore" type="number" min="0" max="100" value="${Number(log.successScore || 0)}" />
+                <input data-edit-field="successScore" type="number" min="0" max="10" value="${Number(log.successScore || 0)}" />
                 <select data-edit-field="focus">
                   ${["laag", "middel", "hoog"]
                     .map((v) => `<option value="${v}" ${log.focus === v ? "selected" : ""}>${v}</option>`)
@@ -928,7 +987,7 @@ function initLogboekPage() {
             <article class="log-item">
               <strong>${escapeHtml(log.date)} · ${escapeHtml(log.sessionId)}</strong>
               <p>Ondergrond: ${escapeHtml(log.surface)} · Weer: ${escapeHtml(log.weather)}</p>
-              <p>Succes: ${log.successScore}% · Focus: ${escapeHtml(log.focus)}</p>
+              <p>Succes: ${Number(log.successScore || 0)}/10 · Focus: ${escapeHtml(log.focus)}</p>
               ${log.photoDataUrl ? `<img src="${log.photoDataUrl}" alt="Sessie foto" class="log-photo" />` : ""}
               <p>${escapeHtml(log.notes || "-")}</p>
               <div class="inline-actions">
@@ -970,7 +1029,7 @@ function initLogboekPage() {
 
     log.surface = fieldValue("surface") || "gras";
     log.weather = fieldValue("weather") || "droog";
-    log.successScore = clamp(Number(fieldValue("successScore") || 0), 0, 100);
+    log.successScore = clamp(Number(fieldValue("successScore") || 0), 0, 10);
     log.focus = fieldValue("focus") || "middel";
     log.notes = fieldValue("notes");
     editingLogId = "";
@@ -991,19 +1050,22 @@ function getUnlockedWeeks(completedCount) {
 }
 
 function getNextOpenSession(unlockedWeeks) {
+  const completed = new Set(state.planner.program.progress.sessionsCompleted);
+  const locationIndex = buildSessionLocationIndex();
   for (let week = 1; week <= unlockedWeeks; week += 1) {
     const weekId = `w${week}`;
     const weekData = state.planner.weeksById[weekId];
     if (!weekData) continue;
     for (const sessionId of weekData.sessions) {
-      if (!state.planner.program.progress.sessionsCompleted.includes(sessionId)) {
+      if (!completed.has(sessionId)) {
         const s = state.planner.sessionsById[sessionId];
         return {
           week,
           id: sessionId,
           title: s.title,
+          trainingCode: s.trainingCode || "",
           sessionNumber: sessionNumberFromId(sessionId),
-          dateIso: getSessionPlannedDate(sessionId),
+          dateIso: getSessionPlannedDate(sessionId, locationIndex),
           lengthM: s.track.lengthM,
           turns: s.track.turns,
           surface: s.track.surface,
@@ -1035,6 +1097,22 @@ function legacyTrainingIdToNew(value) {
   const m = value.match(/^w(\d+)-s(\d+)$/i);
   if (!m) return null;
   return `w${Number(m[1])}-s${Number(m[2])}`;
+}
+
+function buildSessionLocationIndex() {
+  const index = new Map();
+  for (const [weekId, week] of Object.entries(state.planner.weeksById)) {
+    for (const day of DAYS) {
+      for (const sessionId of week.calendar[day]) {
+        index.set(sessionId, { weekId, day });
+      }
+    }
+  }
+  return index;
+}
+
+function findSessionLocationInIndex(sessionId, locationIndex) {
+  return locationIndex.get(sessionId) || null;
 }
 
 function renderPhoto(img, dataUrl) {
@@ -1104,13 +1182,26 @@ function withRefresh(url) {
   return `${u.pathname}${u.search}`;
 }
 
+function parseTrainingCodeFromTitle(title) {
+  const match = String(title || "").match(/training\s*([0-9]+[A-Z]?)/i);
+  if (!match || !match[1]) return "";
+  return match[1].toUpperCase();
+}
+
+function sessionIdentityKey(session) {
+  if (!session) return "";
+  const code = String(session.trainingCode || parseTrainingCodeFromTitle(session.title || "")).trim().toUpperCase();
+  if (code) return `code:${code}`;
+  return `title:${String(session.title || "").trim().toLowerCase()}`;
+}
+
 function sessionNumberFromId(sessionId) {
   const m = String(sessionId).match(/-s(\d+)$/i);
   return m ? Number(m[1]) : 1;
 }
 
-function getSessionPlannedDate(sessionId) {
-  const location = findSessionLocation(sessionId);
+function getSessionPlannedDate(sessionId, locationIndex = null) {
+  const location = locationIndex ? findSessionLocationInIndex(sessionId, locationIndex) : findSessionLocation(sessionId);
   if (!location) return "";
   const weekNum = Number(String(location.weekId).replace("w", ""));
   if (!Number.isInteger(weekNum) || weekNum < 1) return "";

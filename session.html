@@ -54,7 +54,10 @@
             <option value="nat">Nat</option>
             <option value="wind">Wind</option>
           </select>
-          <input id="log-success" type="number" min="0" max="100" placeholder="Succes score 0-100" />
+          <div class="range-row">
+            <label for="log-success">Succes score: <span id="log-success-value">8</span>/10</label>
+            <input id="log-success" type="range" min="0" max="10" step="1" value="8" />
+          </div>
           <select id="log-focus">
             <option value="laag">Focus laag</option>
             <option value="middel" selected>Focus middel</option>

@@ -428,6 +428,21 @@ input, textarea, select {
 .backlog-item { border: 1px dashed var(--border); border-radius: 9px; padding: 0.45rem; background: #11302a; font-size: 0.86rem; }
 
 .training-detail p { margin: 0.3rem 0; }
+.detail-block { margin: 0.35rem 0; }
+.detail-block > strong { display: block; margin-bottom: 0.2rem; }
+.detail-list {
+  margin: 0.2rem 0 0.35rem 1rem;
+  padding: 0;
+  display: grid;
+  gap: 0.15rem;
+}
+.range-row {
+  display: grid;
+  gap: 0.35rem;
+}
+.range-row label {
+  font-weight: 700;
+}
 .session-headline {
   display: flex;
   justify-content: space-between;
