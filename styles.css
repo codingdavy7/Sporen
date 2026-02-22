@@ -431,10 +431,13 @@ input, textarea, select {
 .detail-block { margin: 0.35rem 0; }
 .detail-block > strong { display: block; margin-bottom: 0.2rem; }
 .detail-list {
-  margin: 0.2rem 0 0.35rem 1rem;
-  padding: 0;
-  display: grid;
-  gap: 0.15rem;
+  margin: 0.2rem 0 0.35rem 0;
+  padding-left: 1.2rem;
+  list-style: disc outside;
+}
+.detail-list li {
+  display: list-item;
+  margin: 0.15rem 0;
 }
 .range-row {
   display: grid;
