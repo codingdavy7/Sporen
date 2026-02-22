@@ -20,7 +20,7 @@ const state = {
   preferences: {
     dogName: "",
     pawrent: "",
-    startDate: todayISO(),
+    startDate: suggestedStartDateISO(),
     trainingDays: ["Di", "Do", "Za"],
     profilePhoto: "",
   },
@@ -70,7 +70,11 @@ async function loadPlanSafe() {
 }
 
 function loadStorage() {
-  const fallback = { preferences: { dogName: "", pawrent: "", startDate: todayISO(), trainingDays: ["Di", "Do", "Za"], profilePhoto: "" }, planner: null, legacy: null };
+  const fallback = {
+    preferences: { dogName: "", pawrent: "", startDate: suggestedStartDateISO(), trainingDays: ["Di", "Do", "Za"], profilePhoto: "" },
+    planner: null,
+    legacy: null,
+  };
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return fallback;
 
@@ -82,7 +86,7 @@ function loadStorage() {
       preferences: {
         dogName: typeof preferences.dogName === "string" ? preferences.dogName : "",
         pawrent: typeof preferences.pawrent === "string" ? preferences.pawrent : "",
-        startDate: isIsoDate(preferences.startDate) ? preferences.startDate : todayISO(),
+        startDate: normalizeStartDate(preferences.startDate),
         trainingDays: normalizeTrainingDays(preferences.trainingDays),
         profilePhoto: typeof preferences.profilePhoto === "string" ? preferences.profilePhoto : "",
       },
@@ -166,7 +170,7 @@ function syncPlannerWithPlan() {
     week.settings.trainingDays = days;
     const planWeek = byWeek.get(week.number);
     if (planWeek) week.title = planWeek.theme;
-    repairWeekCalendar(week);
+    repairWeekCalendar(week, state.planner.sessionsById);
   }
   if (!Array.isArray(state.preferences.trainingDays) || state.preferences.trainingDays.length !== 3) {
     state.preferences.trainingDays = days;
@@ -275,7 +279,9 @@ function initProfilePage() {
 
   nameInput.value = state.preferences.dogName;
   pawrentInput.value = state.preferences.pawrent || "";
-  startInput.value = state.preferences.startDate;
+  const minStartDate = suggestedStartDateISO();
+  startInput.min = minStartDate;
+  startInput.value = normalizeStartDate(state.preferences.startDate);
   const selectedDays = normalizeTrainingDays(state.preferences.trainingDays);
   trainingDayInputs.forEach((input) => {
     input.checked = selectedDays.includes(input.value);
@@ -310,8 +316,10 @@ function initProfilePage() {
     const trainingDays = chosenDays.length === 0 ? ["Di", "Do", "Za"] : chosenDays;
 
     if (!name) return (msg.textContent = "Vul een teckelnaam in.");
-    if (!isIsoDate(startDate)) startDate = todayISO();
+    if (!isIsoDate(startDate)) startDate = minStartDate;
     if (trainingDays.length !== 3) return (msg.textContent = "Selecteer exact 3 trainingsdagen.");
+    if (startDate < minStartDate) return (msg.textContent = `Kies een startdatum vanaf ${formatDateReadable(minStartDate)}.`);
+    if (!isMondayIso(startDate)) return (msg.textContent = "Kies een maandag als startdatum.");
 
     state.preferences.dogName = name;
     state.preferences.pawrent = pawrent;
@@ -359,7 +367,7 @@ function initDashboardPage() {
   const next = getNextOpenSession(unlockedWeeks);
 
   if (next) {
-    const nextLabel = String(next.trainingCode || "") === "0" ? "Introductie" : `Training ${next.trainingCode || `S${next.sessionNumber}`}`;
+    const nextLabel = formatTrainingLabel(next, next.id);
     upcoming.textContent = `Volgende sessie: Week ${next.week} - ${nextLabel}`;
     nextDate.textContent = `Gepland op ${formatDateReadable(next.dateIso)}`;
     nextInfo.textContent = `${next.title} · ${next.lengthM}m · ${next.turns} bocht(en) · ${next.surface}`;
@@ -417,7 +425,7 @@ function initTrainingenPage() {
   setCurrentWeek(state.planner, weekSelect.value);
 
   const parseStartDate = () => {
-    const safeStart = isIsoDate(state.preferences.startDate) ? state.preferences.startDate : todayISO();
+    const safeStart = normalizeStartDate(state.preferences.startDate);
     const [y, m, d] = safeStart.split("-").map(Number);
     return new Date(y, m - 1, d);
   };
@@ -495,7 +503,7 @@ function initTrainingenPage() {
           const doneClass = completed.has(entry.sessionId) ? "done" : "";
           const movedClass = entry.sessionId === movedSessionId ? "moved" : "";
           const s = state.planner.sessionsById[entry.sessionId];
-          const label = `Training ${s?.trainingCode || `${entry.weekNumber}${sessionNumberFromId(entry.sessionId)}`}`;
+          const label = formatTrainingLabel(s, entry.sessionId);
           return `<a class="month-session ${doneClass} ${movedClass}" href="./session.html?week=${entry.weekId}&session=${entry.sessionId}&return=trainingen">${label}</a>`;
         })
         .join("");
@@ -524,7 +532,7 @@ function initTrainingenPage() {
           const s = state.planner.sessionsById[sessionId];
           const done = state.planner.program.progress.sessionsCompleted.includes(sessionId);
           const movedClass = sessionId === movedSessionId ? "moved" : "";
-          const levelLabel = `Training ${s.trainingCode || `${week.number}${sessionNumberFromId(sessionId)}`}`;
+          const levelLabel = formatTrainingLabel(s, sessionId);
           return `
             <a class="session-pill ${done ? "done" : ""} ${movedClass}" href="./session.html?week=${weekId}&session=${sessionId}&return=trainingen">
               <div class="session-head"><strong>${levelLabel}</strong><span class="session-status">${done ? "Gedaan" : "Gepland"}</span></div>
@@ -777,7 +785,7 @@ function normalizeTrainingDays(value) {
   return unique;
 }
 
-function repairWeekCalendar(week) {
+function repairWeekCalendar(week, sessionsById) {
   const trainingDays = normalizeTrainingDays(week?.settings?.trainingDays);
   const allowed = new Set(Array.isArray(week?.sessions) ? week.sessions : []);
   const nextCalendar = { Ma: [], Di: [], Wo: [], Do: [], Vr: [], Za: [], Zo: [] };
@@ -799,6 +807,28 @@ function repairWeekCalendar(week) {
     nextCalendar[day].push(sessionId);
     placed.add(sessionId);
     missingIdx += 1;
+  }
+
+  if (week?.number === 1) {
+    const sessionIds = Array.isArray(week?.sessions) ? week.sessions : [];
+    const introSessionId = sessionIds.find((id) => String(sessionsById?.[id]?.trainingCode || "").toUpperCase() === "0");
+    if (introSessionId) {
+      for (const day of DAYS) {
+        nextCalendar[day] = nextCalendar[day].filter((id) => id !== introSessionId);
+      }
+      nextCalendar.Ma.unshift(introSessionId);
+
+      const remaining = sessionIds.filter((id) => id !== introSessionId);
+      const targetDays = [trainingDays[0], trainingDays[1], trainingDays[2]];
+      for (let i = 0; i < remaining.length; i += 1) {
+        const sessionId = remaining[i];
+        for (const day of DAYS) {
+          nextCalendar[day] = nextCalendar[day].filter((id) => id !== sessionId);
+        }
+        const day = i < targetDays.length ? targetDays[i] : trainingDays[i % trainingDays.length];
+        nextCalendar[day].push(sessionId);
+      }
+    }
   }
 
   week.calendar = nextCalendar;
@@ -855,7 +885,7 @@ function renderSessionDetail(container, sessionId) {
 
   container.innerHTML = `
     <h3>Week ${week.number} - ${escapeHtml(week.title)}</h3>
-    <p><strong>Training ${escapeHtml(s.trainingCode || `${week.number}${sessionNumberFromId(sessionId)}`)}</strong></p>
+    <p><strong>${escapeHtml(formatTrainingLabel(s, sessionId))}</strong></p>
     ${introRow}
     <div class="detail-block"><strong>Doel:</strong>${formatRichText(details.goal || "-")}</div>
     <div class="detail-block"><strong>Spoor:</strong>${formatRichText(details.spoor || "-")}</div>
@@ -1195,6 +1225,29 @@ function todayISO() {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
+function suggestedStartDateISO() {
+  const now = new Date();
+  const dayIndex = (now.getDay() + 6) % 7;
+  const daysToNextMonday = ((7 - dayIndex) % 7) || 7;
+  const nextMonday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysToNextMonday);
+  return `${nextMonday.getFullYear()}-${String(nextMonday.getMonth() + 1).padStart(2, "0")}-${String(nextMonday.getDate()).padStart(2, "0")}`;
+}
+
+function isMondayIso(value) {
+  if (!isIsoDate(value)) return false;
+  const [y, m, d] = value.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  return ((date.getDay() + 6) % 7) === 0;
+}
+
+function normalizeStartDate(value) {
+  const suggested = suggestedStartDateISO();
+  if (!isIsoDate(value)) return suggested;
+  if (value < suggested) return suggested;
+  if (!isMondayIso(value)) return suggested;
+  return value;
+}
+
 function isIsoDate(value) {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value));
 }
@@ -1236,12 +1289,32 @@ function sessionNumberFromId(sessionId) {
   return m ? Number(m[1]) : 1;
 }
 
+function getTrainingOrdinal(sessionOrId, sessionIdMaybe = "") {
+  const sessionId = typeof sessionOrId === "string" ? sessionOrId : sessionIdMaybe || sessionOrId?.id || "";
+  const m = String(sessionId).match(/^w(\d+)-s(\d+)$/i);
+  if (!m) return null;
+  const week = Number(m[1]);
+  const session = Number(m[2]);
+  if (week === 1) return session - 1;
+  return 3 + (week - 2) * 3 + session;
+}
+
+function formatTrainingLabel(session, sessionId = "") {
+  const code = String(session?.trainingCode || parseTrainingCodeFromTitle(session?.title || "")).trim().toUpperCase();
+  const ordinal = getTrainingOrdinal(session || sessionId, sessionId);
+  if (code === "0") return "Training 0 (Introductie)";
+  if (ordinal !== null && code) return `Training ${ordinal} (${code})`;
+  if (ordinal !== null) return `Training ${ordinal}`;
+  if (code) return `Training ${code}`;
+  return "Training";
+}
+
 function getSessionPlannedDate(sessionId, locationIndex = null) {
   const location = locationIndex ? findSessionLocationInIndex(sessionId, locationIndex) : findSessionLocation(sessionId);
   if (!location) return "";
   const weekNum = Number(String(location.weekId).replace("w", ""));
   if (!Number.isInteger(weekNum) || weekNum < 1) return "";
-  const safeStart = isIsoDate(state.preferences.startDate) ? state.preferences.startDate : todayISO();
+  const safeStart = normalizeStartDate(state.preferences.startDate);
   const [y, m, d] = safeStart.split("-").map(Number);
   const start = new Date(y, (m || 1) - 1, d || 1);
   const mondayOffset = (start.getDay() + 6) % 7;
